@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 @theme inline {
@@ -12,15 +12,66 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* Masonry layout */
+.masonry {
+  columns: 1;
+  column-gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .masonry {
+    columns: 2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .masonry {
+    columns: 3;
+  }
+}
+
+@media (min-width: 1280px) {
+  .masonry {
+    columns: 4;
+  }
+}
+
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 16px;
+}
+
+/* Live Photo badge animation */
+@keyframes live-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.live-badge {
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+/* Smooth image loading */
+.img-loading {
+  filter: blur(20px);
+  transform: scale(1.1);
+}
+
+.img-loaded {
+  filter: blur(0);
+  transform: scale(1);
+  transition: filter 0.5s ease, transform 0.5s ease;
 }
