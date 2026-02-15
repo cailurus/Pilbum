@@ -14,13 +14,17 @@ export function PhotoCard({ photo }: PhotoCardProps) {
 
   return (
     <div className="masonry-item">
-      <Link href={`/photo/${photo.id}`} className="block group">
+      <Link
+        href={`/photo/${photo.id}`}
+        className="block group"
+        aria-label={photo.title || `查看照片 ${photo.id.slice(0, 8)}`}
+      >
         <div className="relative rounded-xl overflow-hidden bg-neutral-900">
           {photo.isLivePhoto && photo.livePhotoVideoUrl ? (
             <LivePhotoPlayer
               imageUrl={photo.thumbnailUrl}
               videoUrl={photo.livePhotoVideoUrl}
-              alt={photo.title || "Photo"}
+              alt={photo.title || `照片 - ${photo.cameraModel || '未知相机'}`}
               width={photo.width}
               height={photo.height}
               blurDataUrl={photo.blurDataUrl || undefined}
@@ -33,7 +37,7 @@ export function PhotoCard({ photo }: PhotoCardProps) {
             >
               <img
                 src={photo.thumbnailUrl}
-                alt={photo.title || "Photo"}
+                alt={photo.title || `照片 - ${photo.cameraModel || '未知相机'}`}
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
                 className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${imageLoaded ? "img-loaded" : "img-loading"
