@@ -38,15 +38,22 @@ export async function GET(request: NextRequest) {
 
     const total = Number(countResult[0].count);
 
-    return NextResponse.json({
-      photos: result,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
+    return NextResponse.json(
+      {
+        photos: result,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
       },
-    });
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        },
+      }
+    );
   } catch {
     // Database not initialized yet
     return NextResponse.json({
