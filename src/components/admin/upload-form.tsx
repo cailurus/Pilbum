@@ -41,10 +41,29 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addFiles = useCallback((newFiles: FileList | File[]) => {
-    const imageFiles = Array.from(newFiles).filter(
-      (f) =>
-        f.type.startsWith("image/") || isHeicFile(f)
+    const allFiles = Array.from(newFiles);
+
+    // Separate image and video files
+    const imageFiles = allFiles.filter(
+      (f) => f.type.startsWith("image/") || isHeicFile(f)
     );
+    const videoFiles = allFiles.filter(
+      (f) => f.type.startsWith("video/") ||
+             f.name.toLowerCase().endsWith(".mov") ||
+             f.name.toLowerCase().endsWith(".mp4")
+    );
+
+    // Helper to get base filename without extension
+    const getBaseName = (filename: string) => {
+      return filename.replace(/\.[^.]+$/, "").toLowerCase();
+    };
+
+    // Create a map of video files by base name for quick lookup
+    const videoMap = new Map<string, File>();
+    for (const video of videoFiles) {
+      const baseName = getBaseName(video.name);
+      videoMap.set(baseName, video);
+    }
 
     const uploadFiles: UploadFile[] = imageFiles.map((file) => {
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -55,7 +74,18 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
         preview = URL.createObjectURL(file);
       }
 
-      return { id, file, preview, status: "pending" as FileStatus, progress: 0 };
+      // Auto-pair with matching video file (same base name)
+      const baseName = getBaseName(file.name);
+      const matchingVideo = videoMap.get(baseName);
+
+      return {
+        id,
+        file,
+        preview,
+        status: "pending" as FileStatus,
+        progress: 0,
+        videoFile: matchingVideo, // Auto-attach matching video
+      };
     });
 
     setFiles((prev) => [...prev, ...uploadFiles]);
@@ -248,11 +278,14 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
           <p className="text-sm text-neutral-500">
             支持 JPEG、PNG、HEIC/HEIF · 可同时选择多张
           </p>
+          <p className="text-xs text-neutral-600 mt-2">
+            💡 Live Photo: 同时拖入 HEIC 和同名 MOV 文件，会自动配对
+          </p>
         </div>
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*,.heic,.heif"
+          accept="image/*,.heic,.heif,video/*,.mov,.mp4"
           multiple
           onChange={handleFileChange}
           className="hidden"

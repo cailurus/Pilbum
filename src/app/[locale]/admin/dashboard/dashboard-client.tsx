@@ -139,8 +139,11 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
         {activeTab === "upload" ? (
           <UploadForm
             onUploadComplete={() => {
-              setActiveTab("photos");
-              fetchPhotos();
+              // Small delay to ensure database commit completes
+              setTimeout(() => {
+                setActiveTab("photos");
+                fetchPhotos();
+              }, 300);
             }}
           />
         ) : activeTab === "users" && currentUser.role === "admin" ? (
