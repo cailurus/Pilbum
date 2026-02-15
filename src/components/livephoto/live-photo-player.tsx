@@ -67,10 +67,22 @@ export function LivePhotoPlayer({
       }
       : undefined;
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      isPlaying ? stopPlayback() : startPlayback();
+    }
+  };
+
   return (
     <div
       className={`relative overflow-hidden ${className}`}
       style={{ aspectRatio: `${width}/${height}` }}
+      role="button"
+      tabIndex={0}
+      aria-label={`实况照片: ${alt}，${mode === 'hover' ? '悬停播放' : '长按播放'}`}
+      aria-pressed={isPlaying}
+      onKeyDown={handleKeyDown}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onPointerDown={handlePointerDown}
