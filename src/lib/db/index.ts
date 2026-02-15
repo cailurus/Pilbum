@@ -9,7 +9,9 @@ type Database = PostgresJsDatabase<typeof schema>;
 const globalForDb = globalThis as unknown as { _db: Database | undefined };
 
 async function createDb(): Promise<Database> {
-    if (process.env.DATABASE_PROVIDER === "local") {
+    const provider = process.env.DATABASE_PROVIDER || "local";
+
+    if (provider === "local") {
         const dbPath = process.env.LOCAL_DB_PATH || "./data/pglite";
         // Ensure the directory exists before PGlite tries to use it
         fs.mkdirSync(path.resolve(dbPath), { recursive: true });
