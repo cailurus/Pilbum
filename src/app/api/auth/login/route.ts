@@ -5,6 +5,7 @@ import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyPassword } from "@/lib/password";
 import { loginSchema } from "@/lib/validators";
+import { authLogger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -36,6 +37,7 @@ export async function POST(request: NextRequest) {
 
     const valid = await verifyPassword(password, user.passwordHash);
     if (!valid) {
+      authLogger.warn({ username }, 'Failed login attempt');
       return NextResponse.json(
         { error: "用户名或密码错误" },
         { status: 401 }
@@ -49,6 +51,8 @@ export async function POST(request: NextRequest) {
     session.role = user.role as "admin" | "user";
     session.mustChangePassword = user.mustChangePassword;
     await session.save();
+
+    authLogger.info({ userId: user.id, username }, 'User logged in');
 
     return NextResponse.json({
       success: true,

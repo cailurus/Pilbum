@@ -6,6 +6,7 @@ import { getStorage } from "@/lib/storage";
 import { db } from "@/lib/db";
 import { photos } from "@/lib/db/schema";
 import { v4 as uuidv4 } from "uuid";
+import { uploadLogger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -14,9 +15,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  let imageFile: File | null = null;
+
   try {
+    const start = Date.now();
     const formData = await request.formData();
-    const imageFile = formData.get("image") as File | null;
+    imageFile = formData.get("image") as File | null;
     const videoFile = formData.get("video") as File | null;
     const title = (formData.get("title") as string) || "";
     const description = (formData.get("description") as string) || "";
@@ -31,6 +35,8 @@ export async function POST(request: NextRequest) {
     const storage = getStorage();
     const photoId = uuidv4();
     const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
+
+    uploadLogger.info({ filename: imageFile.name, size: imageBuffer.length }, 'Starting upload');
 
     // Extract EXIF before processing (processing may strip it)
     const exif = await extractExif(imageBuffer);
@@ -97,9 +103,11 @@ export async function POST(request: NextRequest) {
       })
       .returning();
 
+    uploadLogger.info({ photoId, duration: Date.now() - start }, 'Upload complete');
+
     return NextResponse.json({ photo }, { status: 201 });
   } catch (error) {
-    console.error("Upload failed:", error);
+    uploadLogger.error({ error, filename: imageFile?.name }, 'Upload failed');
     return NextResponse.json(
       { error: "Upload failed" },
       { status: 500 }
