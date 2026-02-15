@@ -34,9 +34,12 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
   const fetchPhotos = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/photos?limit=100");
+      // Add cache-busting parameter to avoid browser cache
+      const res = await fetch(`/api/photos?limit=100&_t=${Date.now()}`, {
+        cache: 'no-store',
+      });
       const data = await res.json();
-      setPhotos(data.photos);
+      setPhotos(data.photos || []);
     } catch (error) {
       console.error("Failed to fetch photos:", error);
     } finally {
@@ -139,11 +142,11 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
         {activeTab === "upload" ? (
           <UploadForm
             onUploadComplete={() => {
-              // Small delay to ensure database commit completes
-              setTimeout(() => {
+              // Delay to ensure database commit completes, then refresh
+              setTimeout(async () => {
+                await fetchPhotos();
                 setActiveTab("photos");
-                fetchPhotos();
-              }, 300);
+              }, 500);
             }}
           />
         ) : activeTab === "users" && currentUser.role === "admin" ? (
