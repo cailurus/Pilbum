@@ -7,12 +7,20 @@ import { db } from "@/lib/db";
 import { photos } from "@/lib/db/schema";
 import { v4 as uuidv4 } from "uuid";
 import { uploadLogger } from "@/lib/logger";
+import { uploadLimiter, getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Rate limiting
+  const ip = getClientIp(request.headers);
+  const rateLimit = await checkRateLimit(uploadLimiter, ip);
+  if (rateLimit && !rateLimit.success) {
+    return rateLimitResponse(rateLimit.reset);
   }
 
   let imageFile: File | null = null;

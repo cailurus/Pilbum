@@ -6,8 +6,16 @@ import { eq } from "drizzle-orm";
 import { verifyPassword } from "@/lib/password";
 import { loginSchema } from "@/lib/validators";
 import { authLogger } from "@/lib/logger";
+import { authLimiter, getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
+  // Rate limiting
+  const ip = getClientIp(request.headers);
+  const rateLimit = await checkRateLimit(authLimiter, ip);
+  if (rateLimit && !rateLimit.success) {
+    return rateLimitResponse(rateLimit.reset);
+  }
+
   const body = await request.json();
 
   // Validate input
