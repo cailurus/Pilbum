@@ -4,9 +4,21 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyPassword } from "@/lib/password";
+import { loginSchema } from "@/lib/validators";
 
 export async function POST(request: NextRequest) {
-  const { username, password } = await request.json();
+  const body = await request.json();
+
+  // Validate input
+  const parsed = loginSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0].message },
+      { status: 400 }
+    );
+  }
+
+  const { username, password } = parsed.data;
 
   try {
     const [user] = await db
