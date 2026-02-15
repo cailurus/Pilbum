@@ -1,0 +1,65 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "confirm": "Confirm",
+    "back": "Back"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "username": "Username",
+    "password": "Password",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "loginError": "Invalid username or password",
+    "loginSuccess": "Login successful"
+  },
+  "gallery": {
+    "title": "Gallery",
+    "noPhotos": "No photos yet",
+    "loadMore": "Load more",
+    "viewPhoto": "View photo"
+  },
+  "photo": {
+    "title": "Title",
+    "description": "Description",
+    "camera": "Camera",
+    "lens": "Lens",
+    "focalLength": "Focal Length",
+    "aperture": "Aperture",
+    "shutterSpeed": "Shutter Speed",
+    "iso": "ISO",
+    "takenAt": "Taken at",
+    "location": "Location"
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "photos": "Photo Management",
+    "users": "User Management",
+    "upload": "Upload Photo",
+    "createUser": "Create User",
+    "role": "Role",
+    "admin": "Admin",
+    "user": "User"
+  },
+  "upload": {
+    "selectFiles": "Select Files",
+    "dropHere": "Drop files here",
+    "uploading": "Uploading...",
+    "success": "Upload successful",
+    "failed": "Upload failed"
+  },
+  "errors": {
+    "unauthorized": "Unauthorized",
+    "forbidden": "Forbidden",
+    "notFound": "Not Found",
+    "serverError": "Server Error",
+    "tooManyRequests": "Too many requests"
+  }
+}
