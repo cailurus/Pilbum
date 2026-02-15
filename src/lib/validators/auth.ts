@@ -6,8 +6,8 @@ export const loginSchema = z.object({
 });
 
 export const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, '当前密码不能为空'),
-  newPassword: z.string().min(8, '新密码至少需要 8 个字符'),
+  currentPassword: z.string().optional(),
+  newPassword: z.string().min(6, '新密码至少需要 6 个字符'),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;

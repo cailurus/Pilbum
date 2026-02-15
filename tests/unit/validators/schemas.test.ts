@@ -52,8 +52,15 @@ describe('validators', () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe('新密码至少需要 8 个字符');
+        expect(result.error.issues[0].message).toBe('新密码至少需要 6 个字符');
       }
+    });
+
+    it('should allow optional currentPassword for first login', () => {
+      const result = changePasswordSchema.safeParse({
+        newPassword: 'newpassword123',
+      });
+      expect(result.success).toBe(true);
     });
   });
 

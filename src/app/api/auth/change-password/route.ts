@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { hashPassword, verifyPassword } from "@/lib/password";
+import { changePasswordSchema } from "@/lib/validators";
 
 export async function POST(request: NextRequest) {
     const session = await getSession();
@@ -11,14 +12,18 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { currentPassword, newPassword } = await request.json();
+    const body = await request.json();
 
-    if (!newPassword || newPassword.length < 6) {
+    // Validate request body
+    const parsed = changePasswordSchema.safeParse(body);
+    if (!parsed.success) {
         return NextResponse.json(
-            { error: "新密码至少需要 6 个字符" },
+            { error: parsed.error.issues[0].message },
             { status: 400 }
         );
     }
+
+    const { currentPassword, newPassword } = parsed.data;
 
     // Get user from DB
     const [user] = await db

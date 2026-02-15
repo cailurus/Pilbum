@@ -2,11 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { photos } from "@/lib/db/schema";
 import { desc, sql } from "drizzle-orm";
+import { photoQuerySchema } from "@/lib/validators";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
-  const page = parseInt(searchParams.get("page") || "1", 10);
-  const limit = parseInt(searchParams.get("limit") || "20", 10);
+
+  // Validate query params
+  const parsed = photoQuerySchema.safeParse({
+    page: searchParams.get("page") || "1",
+    limit: searchParams.get("limit") || "20",
+  });
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0].message },
+      { status: 400 }
+    );
+  }
+
+  const { page, limit } = parsed.data;
   const offset = (page - 1) * limit;
 
   try {

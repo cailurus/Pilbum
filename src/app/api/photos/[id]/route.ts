@@ -4,6 +4,7 @@ import { photos } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { isAuthenticated } from "@/lib/auth";
 import { getStorage } from "@/lib/storage";
+import { photoUpdateSchema } from "@/lib/validators";
 
 export async function GET(
   _request: NextRequest,
@@ -34,12 +35,21 @@ export async function PATCH(
   const { id } = await params;
   const body = await request.json();
 
-  const allowedFields = ["title", "description", "sortOrder"] as const;
+  // Validate request body
+  const parsed = photoUpdateSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0].message },
+      { status: 400 }
+    );
+  }
+
   const updates: Record<string, unknown> = { updatedAt: new Date() };
+  const allowedFields = ["title", "description", "sortOrder"] as const;
 
   for (const field of allowedFields) {
-    if (body[field] !== undefined) {
-      updates[field] = body[field];
+    if (parsed.data[field] !== undefined) {
+      updates[field] = parsed.data[field];
     }
   }
 

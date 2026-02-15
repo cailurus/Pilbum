@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { hashPassword } from "@/lib/password";
 import { desc } from "drizzle-orm";
+import { createUserSchema } from "@/lib/validators";
 
 // GET — list all users (admin only)
 export async function GET() {
@@ -32,28 +33,18 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { username, password, role, displayName } = await request.json();
+    const body = await request.json();
 
-    if (!username || !password) {
+    // Validate request body with Zod schema
+    const parsed = createUserSchema.safeParse(body);
+    if (!parsed.success) {
         return NextResponse.json(
-            { error: "用户名和密码不能为空" },
+            { error: parsed.error.issues[0].message },
             { status: 400 }
         );
     }
 
-    if (password.length < 6) {
-        return NextResponse.json(
-            { error: "密码至少需要 6 个字符" },
-            { status: 400 }
-        );
-    }
-
-    if (role && !["admin", "user"].includes(role)) {
-        return NextResponse.json(
-            { error: "角色只能是 admin 或 user" },
-            { status: 400 }
-        );
-    }
+    const { username, password, role, displayName } = parsed.data;
 
     try {
         const passwordHash = await hashPassword(password);
