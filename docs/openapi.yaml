@@ -1,0 +1,300 @@
+openapi: 3.0.3
+info:
+  title: Pilbum API
+  description: Personal photography portfolio API
+  version: 1.0.0
+
+servers:
+  - url: /api
+
+paths:
+  /auth/login:
+    post:
+      summary: User login
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  mustChangePassword:
+                    type: boolean
+                  role:
+                    type: string
+                    enum: [admin, user]
+        '401':
+          description: Invalid credentials
+        '429':
+          description: Too many requests
+
+  /auth/logout:
+    post:
+      summary: User logout
+      tags: [Authentication]
+      responses:
+        '200':
+          description: Logout successful
+
+  /auth/me:
+    get:
+      summary: Get current user
+      tags: [Authentication]
+      responses:
+        '200':
+          description: Current user info
+        '401':
+          description: Not authenticated
+
+  /photos:
+    get:
+      summary: List photos
+      tags: [Photos]
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Photo list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  photos:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Photo'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /photos/{id}:
+    get:
+      summary: Get photo details
+      tags: [Photos]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Photo details
+        '404':
+          description: Photo not found
+
+    patch:
+      summary: Update photo
+      tags: [Photos]
+      security:
+        - session: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  maxLength: 200
+                description:
+                  type: string
+                  maxLength: 2000
+                sortOrder:
+                  type: integer
+      responses:
+        '200':
+          description: Photo updated
+        '401':
+          description: Unauthorized
+        '404':
+          description: Photo not found
+
+    delete:
+      summary: Delete photo
+      tags: [Photos]
+      security:
+        - session: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Photo deleted
+        '401':
+          description: Unauthorized
+        '404':
+          description: Photo not found
+
+  /upload:
+    post:
+      summary: Upload photo
+      tags: [Photos]
+      security:
+        - session: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                video:
+                  type: string
+                  format: binary
+                  description: Live Photo video
+                title:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '201':
+          description: Photo uploaded
+        '401':
+          description: Unauthorized
+        '429':
+          description: Too many requests
+
+  /admin/users:
+    get:
+      summary: List users
+      tags: [Admin]
+      security:
+        - session: []
+      responses:
+        '200':
+          description: User list
+        '403':
+          description: Admin only
+
+    post:
+      summary: Create user
+      tags: [Admin]
+      security:
+        - session: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                  minLength: 2
+                  maxLength: 50
+                password:
+                  type: string
+                  minLength: 6
+                role:
+                  type: string
+                  enum: [admin, user]
+                displayName:
+                  type: string
+      responses:
+        '201':
+          description: User created
+        '403':
+          description: Admin only
+        '409':
+          description: Username exists
+
+components:
+  schemas:
+    Photo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        thumbnailUrl:
+          type: string
+        width:
+          type: integer
+        height:
+          type: integer
+        isLivePhoto:
+          type: boolean
+        livePhotoVideoUrl:
+          type: string
+        cameraModel:
+          type: string
+        aperture:
+          type: number
+        shutterSpeed:
+          type: string
+        iso:
+          type: integer
+        takenAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: pilbum_session
