@@ -256,7 +256,7 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
       : 0;
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6">
       {/* Drop zone */}
       <div
         onClick={() => !uploading && fileInputRef.current?.click()}
@@ -264,22 +264,27 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         className={`relative border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-200 ${uploading
-            ? "border-neutral-800 cursor-default opacity-60"
+            ? "border-neutral-300 dark:border-neutral-800 cursor-default opacity-60"
             : dragOver
-              ? "border-white/60 bg-white/5 scale-[1.01]"
-              : "border-neutral-700 cursor-pointer hover:border-neutral-500 hover:bg-white/[0.02]"
+              ? "border-blue-400 dark:border-white/60 bg-blue-50 dark:bg-white/5 scale-[1.01]"
+              : "border-neutral-300 dark:border-neutral-700 cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-500 hover:bg-neutral-50 dark:hover:bg-white/[0.02]"
           }`}
       >
-        <div className="text-neutral-400 space-y-2">
-          <div className="text-4xl mb-3">📷</div>
-          <p className="text-lg font-medium text-neutral-300">
+        <div className="text-neutral-500 dark:text-neutral-400 space-y-2">
+          <div className="mb-3">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mx-auto text-neutral-400 dark:text-neutral-500">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+          </div>
+          <p className="text-lg font-medium text-neutral-700 dark:text-neutral-300">
             拖拽照片到这里，或点击选择
           </p>
           <p className="text-sm text-neutral-500">
             支持 JPEG、PNG、HEIC/HEIF · 可同时选择多张
           </p>
-          <p className="text-xs text-neutral-600 mt-2">
-            💡 Live Photo: 同时拖入 HEIC 和同名 MOV 文件，会自动配对
+          <p className="text-xs text-neutral-400 dark:text-neutral-600 mt-2">
+            Live Photo: 同时拖入 HEIC 和同名 MOV 文件，会自动配对
           </p>
         </div>
         <input
@@ -300,12 +305,12 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
           {uploading && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-neutral-400">
+                <span className="text-neutral-500 dark:text-neutral-400">
                   总进度
                 </span>
-                <span className="text-neutral-300 tabular-nums">{totalProgress}%</span>
+                <span className="text-neutral-700 dark:text-neutral-300 tabular-nums">{totalProgress}%</span>
               </div>
-              <div className="h-1 bg-neutral-800 rounded-full overflow-hidden">
+              <div className="h-1 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full transition-all duration-300 ease-out"
                   style={{ width: `${totalProgress}%` }}
@@ -320,16 +325,16 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
               <div
                 key={f.id}
                 className={`group relative flex items-center gap-4 p-3 rounded-xl border transition-all duration-300 ${f.status === "success"
-                    ? "border-green-800/50 bg-green-950/20"
+                    ? "border-green-200 dark:border-green-800/50 bg-green-50 dark:bg-green-950/20"
                     : f.status === "error"
-                      ? "border-red-800/50 bg-red-950/20"
+                      ? "border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/20"
                       : f.status === "uploading"
-                        ? "border-neutral-700 bg-neutral-900/50"
-                        : "border-neutral-800 bg-neutral-900/30 hover:border-neutral-700"
+                        ? "border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/50"
+                        : "border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/30 hover:border-neutral-300 dark:hover:border-neutral-700"
                   }`}
               >
                 {/* Thumbnail / placeholder */}
-                <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-neutral-800 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center">
                   {f.preview ? (
                     <img
                       src={f.preview}
@@ -337,20 +342,22 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-2xl">
-                      {isHeicFile(f.file) ? "🍎" : "🖼️"}
-                    </span>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-neutral-400 dark:text-neutral-500">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <polyline points="21 15 16 10 5 21" />
+                    </svg>
                   )}
                 </div>
 
                 {/* File info */}
                 <div className="flex-1 min-w-0 space-y-1">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm text-neutral-200 truncate">
+                    <p className="text-sm text-neutral-800 dark:text-neutral-200 truncate">
                       {f.file.name}
                     </p>
                     {f.videoFile && (
-                      <span className="flex-shrink-0 text-xs px-1.5 py-0.5 bg-purple-900/50 text-purple-300 rounded">
+                      <span className="flex-shrink-0 text-xs px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300 rounded">
                         Live
                       </span>
                     )}
@@ -362,7 +369,7 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
 
                   {/* Progress bar per file */}
                   {(f.status === "uploading" || f.status === "success") && (
-                    <div className="h-1 bg-neutral-800 rounded-full overflow-hidden mt-1">
+                    <div className="h-1 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden mt-1">
                       <div
                         className={`h-full rounded-full transition-all duration-300 ease-out ${f.status === "success"
                             ? "bg-green-500"
@@ -375,7 +382,7 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
 
                   {/* Error message */}
                   {f.status === "error" && f.error && (
-                    <p className="text-xs text-red-400">{f.error}</p>
+                    <p className="text-xs text-red-500 dark:text-red-400">{f.error}</p>
                   )}
                 </div>
 
@@ -386,7 +393,7 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
                       {/* Attach Live Photo video */}
                       <label
                         title="附加 Live Photo 视频"
-                        className="p-1.5 text-neutral-500 hover:text-neutral-300 cursor-pointer transition-colors"
+                        className="p-1.5 text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 cursor-pointer transition-colors"
                       >
                         <svg
                           className="w-4 h-4"
@@ -415,7 +422,7 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
                       {/* Remove */}
                       <button
                         onClick={() => removeFile(f.id)}
-                        className="p-1.5 text-neutral-500 hover:text-red-400 transition-colors"
+                        className="p-1.5 text-neutral-400 dark:text-neutral-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                         title="移除"
                       >
                         <svg
@@ -505,7 +512,7 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
                 type="button"
                 onClick={clearAll}
                 disabled={uploading}
-                className="px-4 py-2 text-sm text-neutral-400 hover:text-white transition-colors disabled:opacity-40"
+                className="px-4 py-2 text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
               >
                 清空
               </button>
@@ -513,7 +520,7 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
                 type="button"
                 onClick={handleUpload}
                 disabled={uploading || pendingCount === 0}
-                className="px-6 py-2.5 bg-white text-black rounded-lg text-sm font-medium hover:bg-neutral-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-6 py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-xl text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 {uploading
                   ? `上传中 (${successCount}/${files.length})`

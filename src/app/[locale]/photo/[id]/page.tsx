@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { PhotoDetail } from "./photo-detail";
 import type { Metadata } from "next";
+import { siteConfig } from "@/config/site.config";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!photo) return { title: "Photo not found" };
 
   return {
-    title: photo.title ? `${photo.title} - Pilbum` : "Pilbum",
+    title: photo.title ? `${photo.title} - ${siteConfig.name}` : siteConfig.name,
     description: photo.description || undefined,
   };
 }

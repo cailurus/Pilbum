@@ -57,7 +57,7 @@ export function MasonryGallery({
 
   if (photos.length === 0) {
     return (
-      <div className="text-center text-neutral-500 py-32">
+      <div className="text-center text-neutral-500 dark:text-neutral-500 py-32">
         <p className="text-lg">暂无照片</p>
       </div>
     );
@@ -75,7 +75,7 @@ export function MasonryGallery({
       {hasMore && (
         <div ref={loaderRef} className="py-12 text-center">
           {loading && (
-            <div className="inline-block w-6 h-6 border-2 border-neutral-600 border-t-white rounded-full animate-spin" />
+            <div className="inline-block w-6 h-6 border-2 border-neutral-300 dark:border-neutral-600 border-t-neutral-900 dark:border-t-white rounded-full animate-spin" />
           )}
         </div>
       )}

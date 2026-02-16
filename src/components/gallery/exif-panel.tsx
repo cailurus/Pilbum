@@ -2,6 +2,7 @@
 
 import type { Photo } from "@/lib/db/schema";
 import { MapDisplay } from "./map-display";
+import { displayConfig } from "@/config/display.config";
 
 interface ExifPanelProps {
   photo: Photo;
@@ -18,23 +19,24 @@ function ExifItem({
 }) {
   return (
     <div className="flex items-start gap-3 py-3">
-      <div className="text-neutral-500 flex-shrink-0 mt-0.5">{icon}</div>
+      <div className="text-neutral-400 dark:text-neutral-500 flex-shrink-0 mt-0.5">{icon}</div>
       <div>
-        <div className="text-xs text-neutral-500 uppercase tracking-wider">
+        <div className="text-xs text-neutral-500 dark:text-neutral-500 uppercase tracking-wider">
           {label}
         </div>
-        <div className="text-sm text-neutral-200 mt-0.5">{value}</div>
+        <div className="text-sm text-neutral-700 dark:text-neutral-200 mt-0.5">{value}</div>
       </div>
     </div>
   );
 }
 
-// Simple SVG icons
+// Modern minimal SVG icons
 function CameraIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+      <rect x="2" y="6" width="20" height="14" rx="2" />
       <circle cx="12" cy="13" r="4" />
+      <path d="M2 10h2" />
     </svg>
   );
 }
@@ -42,18 +44,22 @@ function CameraIcon() {
 function LensIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <circle cx="12" cy="12" r="6" />
-      <circle cx="12" cy="12" r="2" />
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="4" />
     </svg>
   );
 }
 
-function SettingsIcon() {
+function ApertureIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
+      <circle cx="12" cy="12" r="10" />
+      <line x1="14.31" y1="8" x2="20.05" y2="17.94" />
+      <line x1="9.69" y1="8" x2="21.17" y2="8" />
+      <line x1="7.38" y1="12" x2="13.12" y2="2.06" />
+      <line x1="9.69" y1="16" x2="3.95" y2="6.06" />
+      <line x1="14.31" y1="16" x2="2.83" y2="16" />
+      <line x1="16.62" y1="12" x2="10.88" y2="21.94" />
     </svg>
   );
 }
@@ -61,10 +67,10 @@ function SettingsIcon() {
 function CalendarIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M3 10h18" />
+      <path d="M8 2v4" />
+      <path d="M16 2v4" />
     </svg>
   );
 }
@@ -72,23 +78,83 @@ function CalendarIcon() {
 function MapPinIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-      <circle cx="12" cy="10" r="3" />
+      <path d="M12 21c-4-4-8-7.5-8-12a8 8 0 1 1 16 0c0 4.5-4 8-8 12z" />
+      <circle cx="12" cy="9" r="3" />
     </svg>
   );
 }
 
-export function ExifPanel({ photo }: ExifPanelProps) {
-  const hasExif =
-    photo.cameraModel ||
-    photo.lensModel ||
-    photo.aperture ||
-    photo.shutterSpeed ||
-    photo.iso ||
-    photo.takenAt ||
-    photo.latitude;
+function FileIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7l-5-5z" />
+      <path d="M14 2v6h6" />
+    </svg>
+  );
+}
 
-  if (!hasExif) return null;
+function ImageIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M3 16l5-5 4 4 5-5 4 4" />
+      <circle cx="8" cy="8" r="1.5" />
+    </svg>
+  );
+}
+
+function CloudUpIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" />
+      <path d="M12 13v6" />
+      <path d="M9 16l3-3 3 3" />
+    </svg>
+  );
+}
+
+function LivePhotoIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="3" fill="currentColor" />
+    </svg>
+  );
+}
+
+function MountainIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 3l4 8 5-5 5 10H2L8 3z" />
+    </svg>
+  );
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+export function ExifPanel({ photo }: ExifPanelProps) {
+  const { exif, fileInfo } = displayConfig;
+
+  // Check if any EXIF info should be shown
+  const hasExif =
+    (exif.camera && photo.cameraModel) ||
+    (exif.lens && photo.lensModel) ||
+    (exif.shootingParams && (photo.aperture || photo.shutterSpeed || photo.iso || photo.focalLength)) ||
+    (exif.takenDate && photo.takenAt) ||
+    (exif.gpsMap && photo.latitude && photo.longitude);
+
+  // Check if any file info should be shown
+  const hasFileInfo =
+    (fileInfo.dimensions && photo.width && photo.height) ||
+    (fileInfo.fileSize && photo.fileSize) ||
+    (fileInfo.uploadDate && photo.createdAt) ||
+    (fileInfo.livePhotoIndicator && photo.isLivePhoto) ||
+    (fileInfo.originalFilename && photo.originalFilename) ||
+    (fileInfo.altitude && photo.altitude);
 
   // Build shooting params string
   const params: string[] = [];
@@ -98,14 +164,15 @@ export function ExifPanel({ photo }: ExifPanelProps) {
   if (photo.iso) params.push(`ISO ${photo.iso}`);
   const paramsStr = params.join("  ·  ");
 
-  return (
-    <div className="border-t border-neutral-800 pt-6">
-      <h3 className="text-xs text-neutral-500 uppercase tracking-wider mb-2">
+  // EXIF info section
+  const exifSection = hasExif && (
+    <>
+      <h3 className="text-xs text-neutral-500 dark:text-neutral-500 uppercase tracking-wider mb-2">
         拍摄信息
       </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 divide-y divide-neutral-800/50 sm:divide-y-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 divide-y divide-neutral-200 dark:divide-neutral-800/50 sm:divide-y-0">
         {/* Camera */}
-        {photo.cameraModel && (
+        {exif.camera && photo.cameraModel && (
           <ExifItem
             icon={<CameraIcon />}
             label="相机"
@@ -118,7 +185,7 @@ export function ExifPanel({ photo }: ExifPanelProps) {
         )}
 
         {/* Lens */}
-        {photo.lensModel && (
+        {exif.lens && photo.lensModel && (
           <ExifItem
             icon={<LensIcon />}
             label="镜头"
@@ -127,16 +194,16 @@ export function ExifPanel({ photo }: ExifPanelProps) {
         )}
 
         {/* Shooting params */}
-        {paramsStr && (
+        {exif.shootingParams && paramsStr && (
           <ExifItem
-            icon={<SettingsIcon />}
+            icon={<ApertureIcon />}
             label="拍摄参数"
             value={paramsStr}
           />
         )}
 
         {/* Date */}
-        {photo.takenAt && (
+        {exif.takenDate && photo.takenAt && (
           <ExifItem
             icon={<CalendarIcon />}
             label="拍摄时间"
@@ -152,17 +219,96 @@ export function ExifPanel({ photo }: ExifPanelProps) {
       </div>
 
       {/* GPS Map */}
-      {photo.latitude && photo.longitude && (
-        <div className="mt-4 border-t border-neutral-800 pt-4">
-          <div className="flex items-center gap-2 mb-3">
+      {exif.gpsMap && photo.latitude && photo.longitude && (
+        <div className="mt-4 border-t border-neutral-200 dark:border-neutral-800 pt-4">
+          <div className="flex items-center gap-2 mb-3 text-neutral-400 dark:text-neutral-500">
             <MapPinIcon />
-            <span className="text-xs text-neutral-500 uppercase tracking-wider">
+            <span className="text-xs text-neutral-500 dark:text-neutral-500 uppercase tracking-wider">
               拍摄地点
             </span>
           </div>
           <MapDisplay lat={photo.latitude} lng={photo.longitude} />
         </div>
       )}
+    </>
+  );
+
+  // File info section
+  const fileInfoSection = hasFileInfo && (
+    <div className={hasExif ? "border-t border-neutral-200 dark:border-neutral-800 pt-6 mt-6" : ""}>
+      <h3 className="text-xs text-neutral-500 dark:text-neutral-500 uppercase tracking-wider mb-2">
+        文件信息
+      </h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 divide-y divide-neutral-200 dark:divide-neutral-800/50 sm:divide-y-0">
+        {/* Dimensions */}
+        {fileInfo.dimensions && photo.width && photo.height && (
+          <ExifItem
+            icon={<ImageIcon />}
+            label="尺寸"
+            value={`${photo.width} × ${photo.height}`}
+          />
+        )}
+
+        {/* File size */}
+        {fileInfo.fileSize && photo.fileSize && (
+          <ExifItem
+            icon={<FileIcon />}
+            label="文件大小"
+            value={formatFileSize(photo.fileSize)}
+          />
+        )}
+
+        {/* Upload date */}
+        {fileInfo.uploadDate && (
+          <ExifItem
+            icon={<CloudUpIcon />}
+            label="上传时间"
+            value={new Date(photo.createdAt).toLocaleString("zh-CN", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          />
+        )}
+
+        {/* Live Photo indicator */}
+        {fileInfo.livePhotoIndicator && photo.isLivePhoto && (
+          <ExifItem
+            icon={<LivePhotoIcon />}
+            label="类型"
+            value="Live Photo"
+          />
+        )}
+
+        {/* Original filename */}
+        {fileInfo.originalFilename && photo.originalFilename && (
+          <ExifItem
+            icon={<FileIcon />}
+            label="原始文件名"
+            value={photo.originalFilename}
+          />
+        )}
+
+        {/* Altitude */}
+        {fileInfo.altitude && photo.altitude && (
+          <ExifItem
+            icon={<MountainIcon />}
+            label="海拔"
+            value={`${photo.altitude.toFixed(1)} 米`}
+          />
+        )}
+      </div>
+    </div>
+  );
+
+  if (!hasExif && !hasFileInfo) return null;
+
+  return (
+    <div className="border-t border-neutral-200 dark:border-neutral-800 pt-6">
+      {exifSection}
+      {fileInfoSection}
     </div>
   );
 }

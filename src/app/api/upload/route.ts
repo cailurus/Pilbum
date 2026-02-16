@@ -49,6 +49,15 @@ export async function POST(request: NextRequest) {
     // Extract EXIF before processing (processing may strip it)
     const exif = await extractExif(imageBuffer);
 
+    // Debug: log extracted EXIF
+    uploadLogger.info({
+      filename: imageFile.name,
+      exifFound: Object.keys(exif).filter(k => exif[k as keyof typeof exif] !== undefined).length,
+      cameraMake: exif.cameraMake,
+      cameraModel: exif.cameraModel,
+      aperture: exif.aperture,
+    }, 'EXIF extraction result');
+
     // Process image: generate full, thumbnail, blur
     const processed = await processImage(imageBuffer);
 
@@ -81,35 +90,55 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert into database
-    const [photo] = await db
-      .insert(photos)
-      .values({
-        id: photoId,
-        title,
-        description,
-        imageUrl,
-        thumbnailUrl,
-        blurDataUrl: processed.blurDataUrl,
-        width: processed.width,
-        height: processed.height,
-        isLivePhoto: !!videoFile,
-        livePhotoVideoUrl,
-        cameraMake: exif.cameraMake,
-        cameraModel: exif.cameraModel,
-        lensModel: exif.lensModel,
-        focalLength: exif.focalLength,
-        aperture: exif.aperture,
-        shutterSpeed: exif.shutterSpeed,
-        iso: exif.iso,
-        takenAt: exif.takenAt,
-        latitude: exif.latitude,
-        longitude: exif.longitude,
-        altitude: exif.altitude,
-        originalFilename: imageFile.name,
-        fileSize: imageBuffer.length,
-        mimeType: imageFile.type,
-      })
-      .returning();
+    const photoData = {
+      id: photoId,
+      title,
+      description,
+      imageUrl,
+      thumbnailUrl,
+      blurDataUrl: processed.blurDataUrl,
+      width: processed.width,
+      height: processed.height,
+      isLivePhoto: !!videoFile,
+      livePhotoVideoUrl,
+      // Camera info
+      cameraMake: exif.cameraMake,
+      cameraModel: exif.cameraModel,
+      lensModel: exif.lensModel,
+      lensMake: exif.lensMake,
+      software: exif.software,
+      // Shooting parameters
+      focalLength: exif.focalLength,
+      focalLength35mm: exif.focalLength35mm,
+      aperture: exif.aperture,
+      shutterSpeed: exif.shutterSpeed,
+      exposureTime: exif.exposureTime,
+      iso: exif.iso,
+      exposureBias: exif.exposureBias,
+      exposureProgram: exif.exposureProgram,
+      exposureMode: exif.exposureMode,
+      meteringMode: exif.meteringMode,
+      flash: exif.flash,
+      whiteBalance: exif.whiteBalance,
+      // Image info
+      colorSpace: exif.colorSpace,
+      orientation: exif.orientation,
+      takenAt: exif.takenAt ? exif.takenAt.toISOString() : null,
+      // GPS
+      latitude: exif.latitude,
+      longitude: exif.longitude,
+      altitude: exif.altitude,
+      // File info
+      originalFilename: imageFile.name,
+      fileSize: imageBuffer.length,
+      mimeType: imageFile.type,
+      // Timestamps for SQLite
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await db.insert(photos).values(photoData);
+    const photo = photoData;
 
     uploadLogger.info({ photoId, duration: Date.now() - start }, 'Upload complete');
 

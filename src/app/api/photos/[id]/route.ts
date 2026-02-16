@@ -51,20 +51,37 @@ export async function PATCH(
     );
   }
 
-  const updates: Record<string, unknown> = { updatedAt: new Date() };
-  const allowedFields = ["title", "description", "sortOrder"] as const;
+  const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() };
 
-  for (const field of allowedFields) {
-    if (parsed.data[field] !== undefined) {
-      updates[field] = parsed.data[field];
+  // Content fields
+  if (parsed.data.title !== undefined) updates.title = parsed.data.title;
+  if (parsed.data.description !== undefined) updates.description = parsed.data.description;
+  if (parsed.data.sortOrder !== undefined) updates.sortOrder = parsed.data.sortOrder;
+
+  // EXIF fields (from request body directly)
+  const exifFields = [
+    "cameraMake", "cameraModel", "lensModel", "lensMake",
+    "focalLength", "aperture", "shutterSpeed", "iso",
+    "takenAt", "latitude", "longitude", "altitude"
+  ] as const;
+  const parsedData = parsed.data as Record<string, unknown>;
+  for (const field of exifFields) {
+    if (parsedData[field] !== undefined) {
+      updates[field] = parsedData[field];
     }
   }
 
-  const [updated] = await db
+  await db
     .update(photos)
     .set(updates)
+    .where(eq(photos.id, id));
+
+  // Fetch the updated record
+  const [updated] = await db
+    .select()
+    .from(photos)
     .where(eq(photos.id, id))
-    .returning();
+    .limit(1);
 
   if (!updated) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

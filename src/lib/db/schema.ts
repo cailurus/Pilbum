@@ -1,24 +1,21 @@
 import {
-  pgTable,
+  sqliteTable,
   text,
-  timestamp,
   integer,
   real,
-  boolean,
-  uuid,
-} from "drizzle-orm/pg-core";
+} from "drizzle-orm/sqlite-core";
 
 // ─── Users ───────────────────────────────────────────────
 
-export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey(),
   username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: text("role", { enum: ["admin", "user"] }).notNull().default("user"),
   displayName: text("display_name").default(""),
-  mustChangePassword: boolean("must_change_password").notNull().default(false),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  mustChangePassword: integer("must_change_password", { mode: "boolean" }).notNull().default(false),
+  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
 export type User = typeof users.$inferSelect;
@@ -26,8 +23,8 @@ export type NewUser = typeof users.$inferInsert;
 
 // ─── Photos ──────────────────────────────────────────────
 
-export const photos = pgTable("photos", {
-  id: uuid("id").primaryKey().defaultRandom(),
+export const photos = sqliteTable("photos", {
+  id: text("id").primaryKey(),
   title: text("title").notNull().default(""),
   description: text("description").default(""),
 
@@ -41,18 +38,34 @@ export const photos = pgTable("photos", {
   height: integer("height").notNull(),
 
   // Live Photo
-  isLivePhoto: boolean("is_live_photo").notNull().default(false),
+  isLivePhoto: integer("is_live_photo", { mode: "boolean" }).notNull().default(false),
   livePhotoVideoUrl: text("live_photo_video_url"),
 
-  // EXIF data
+  // EXIF - Camera info
   cameraMake: text("camera_make"),
   cameraModel: text("camera_model"),
   lensModel: text("lens_model"),
+  lensMake: text("lens_make"),
+  software: text("software"),
+
+  // EXIF - Shooting parameters
   focalLength: real("focal_length"),
+  focalLength35mm: real("focal_length_35mm"),
   aperture: real("aperture"),
   shutterSpeed: text("shutter_speed"),
+  exposureTime: real("exposure_time"),
   iso: integer("iso"),
-  takenAt: timestamp("taken_at"),
+  exposureBias: real("exposure_bias"),
+  exposureProgram: text("exposure_program"),
+  exposureMode: text("exposure_mode"),
+  meteringMode: text("metering_mode"),
+  flash: text("flash"),
+  whiteBalance: text("white_balance"),
+
+  // EXIF - Image info
+  colorSpace: text("color_space"),
+  orientation: integer("orientation"),
+  takenAt: text("taken_at"),
 
   // GPS
   latitude: real("latitude"),
@@ -64,8 +77,8 @@ export const photos = pgTable("photos", {
   fileSize: integer("file_size"),
   mimeType: text("mime_type"),
   sortOrder: integer("sort_order").notNull().default(0),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
 export type Photo = typeof photos.$inferSelect;

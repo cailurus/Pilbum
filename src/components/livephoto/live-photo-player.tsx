@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
+import { useImageLoaded } from "@/hooks/use-image-loaded";
 
 interface LivePhotoPlayerProps {
   imageUrl: string;
@@ -11,6 +12,8 @@ interface LivePhotoPlayerProps {
   blurDataUrl?: string;
   mode: "hover" | "longpress";
   className?: string;
+  maxHeight?: string;
+  objectFit?: "cover" | "contain";
 }
 
 export function LivePhotoPlayer({
@@ -22,10 +25,12 @@ export function LivePhotoPlayer({
   blurDataUrl,
   mode,
   className = "",
+  maxHeight,
+  objectFit = "cover",
 }: LivePhotoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const { loaded: imageLoaded, onLoad, onError, refCallback } = useImageLoaded(imageUrl);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const startPlayback = useCallback(() => {
@@ -74,10 +79,15 @@ export function LivePhotoPlayer({
     }
   };
 
+  const fitClass = objectFit === "contain" ? "object-contain" : "object-cover";
+
   return (
     <div
-      className={`relative overflow-hidden ${className}`}
-      style={{ aspectRatio: `${width}/${height}` }}
+      className={`relative overflow-hidden w-full ${className}`}
+      style={{
+        aspectRatio: `${width}/${height}`,
+        ...(maxHeight && { maxHeight }),
+      }}
       role="button"
       tabIndex={0}
       aria-label={`实况照片: ${alt}，${mode === 'hover' ? '悬停播放' : '长按播放'}`}
@@ -90,13 +100,15 @@ export function LivePhotoPlayer({
       onPointerCancel={handlePointerUp}
       onContextMenu={mode === "longpress" ? (e) => e.preventDefault() : undefined}
     >
-      {/* Static image */}
+      {/* Static image - use relative positioning to give container height */}
       <img
+        ref={refCallback}
         src={imageUrl}
         alt={alt}
         loading="lazy"
-        onLoad={() => setImageLoaded(true)}
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isPlaying ? "opacity-0" : "opacity-100"
+        onLoad={onLoad}
+        onError={onError}
+        className={`w-full h-full ${fitClass} transition-opacity duration-300 ${isPlaying ? "opacity-0" : "opacity-100"
           } ${imageLoaded ? "img-loaded" : "img-loading"}`}
         style={
           blurDataUrl && !imageLoaded
@@ -105,7 +117,7 @@ export function LivePhotoPlayer({
         }
       />
 
-      {/* Video layer */}
+      {/* Video layer - absolute overlay */}
       <video
         ref={videoRef}
         src={videoUrl}
@@ -113,7 +125,7 @@ export function LivePhotoPlayer({
         playsInline
         loop
         preload="none"
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isPlaying ? "opacity-100" : "opacity-0"
+        className={`absolute inset-0 w-full h-full ${fitClass} transition-opacity duration-300 ${isPlaying ? "opacity-100" : "opacity-0"
           }`}
       />
 

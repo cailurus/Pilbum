@@ -16,7 +16,7 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
-    const updates: Record<string, unknown> = { updatedAt: new Date() };
+    const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() };
 
     if (body.displayName !== undefined) updates.displayName = body.displayName;
     if (body.role && ["admin", "user"].includes(body.role)) updates.role = body.role;
@@ -33,16 +33,19 @@ export async function PATCH(
         updates.mustChangePassword = true;
     }
 
+    await db.update(users).set(updates).where(eq(users.id, id));
+
+    // Fetch the updated user
     const [updated] = await db
-        .update(users)
-        .set(updates)
-        .where(eq(users.id, id))
-        .returning({
+        .select({
             id: users.id,
             username: users.username,
             role: users.role,
             displayName: users.displayName,
-        });
+        })
+        .from(users)
+        .where(eq(users.id, id))
+        .limit(1);
 
     if (!updated) {
         return NextResponse.json({ error: "用户不存在" }, { status: 404 });
@@ -70,14 +73,18 @@ export async function DELETE(
         );
     }
 
-    const [deleted] = await db
-        .delete(users)
+    // Check if user exists first
+    const [existing] = await db
+        .select({ id: users.id })
+        .from(users)
         .where(eq(users.id, id))
-        .returning({ id: users.id });
+        .limit(1);
 
-    if (!deleted) {
+    if (!existing) {
         return NextResponse.json({ error: "用户不存在" }, { status: 404 });
     }
+
+    await db.delete(users).where(eq(users.id, id));
 
     return NextResponse.json({ success: true });
 }

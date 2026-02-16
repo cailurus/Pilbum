@@ -55,12 +55,14 @@ export async function processImage(
   const height = metadata.height || 0;
 
   // Full-size: resize if larger than max, convert to JPEG
+  // Use keepMetadata() to preserve EXIF data in output
   const fullImage = sharp(jpegBuffer)
     .rotate() // Auto-rotate based on EXIF orientation
     .resize(FULL_MAX_WIDTH, undefined, {
       withoutEnlargement: true,
       fit: "inside",
     })
+    .keepMetadata() // Preserve EXIF metadata
     .jpeg({ quality: 85, progressive: true });
 
   const fullBuffer = await fullImage.toBuffer();

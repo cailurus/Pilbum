@@ -56,9 +56,9 @@ export default function ChangePasswordPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-neutral-950">
-            <div className="w-full max-w-sm p-8">
-                <h1 className="text-2xl font-light text-white mb-2 text-center tracking-wide">
+        <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950 transition-colors px-4">
+            <div className="w-full max-w-sm p-8 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-neutral-200/50 dark:border-neutral-800/50 rounded-2xl shadow-sm">
+                <h1 className="text-2xl font-medium text-neutral-900 dark:text-white mb-2 text-center tracking-wide">
                     修改密码
                 </h1>
                 {isFirstLogin && (
@@ -66,7 +66,7 @@ export default function ChangePasswordPage() {
                         首次登录，请设置一个新密码
                     </p>
                 )}
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4 mt-6">
                     {!isFirstLogin && (
                         <div>
                             <input
@@ -74,7 +74,7 @@ export default function ChangePasswordPage() {
                                 value={currentPassword}
                                 onChange={(e) => setCurrentPassword(e.target.value)}
                                 placeholder="当前密码"
-                                className="w-full px-4 py-3 bg-neutral-900 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-600 transition-colors"
+                                className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-600 transition-colors"
                                 required
                             />
                         </div>
@@ -85,7 +85,7 @@ export default function ChangePasswordPage() {
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
                             placeholder="新密码（至少 6 位）"
-                            className="w-full px-4 py-3 bg-neutral-900 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-600 transition-colors"
+                            className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-600 transition-colors"
                             required
                             minLength={6}
                         />
@@ -96,17 +96,17 @@ export default function ChangePasswordPage() {
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             placeholder="确认新密码"
-                            className="w-full px-4 py-3 bg-neutral-900 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-600 transition-colors"
+                            className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-600 transition-colors"
                             required
                         />
                     </div>
                     {error && (
-                        <p className="text-red-400 text-sm text-center">{error}</p>
+                        <p className="text-red-600 dark:text-red-400 text-sm text-center">{error}</p>
                     )}
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-3 bg-white text-black rounded-lg font-medium hover:bg-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full py-3 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-xl font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                         {loading ? "保存中..." : "确认修改"}
                     </button>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { siteConfig } from "@/config/site.config";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -71,10 +72,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-950">
-      <div className="w-full max-w-sm p-8">
-        <h1 className="text-2xl font-light text-white mb-8 text-center tracking-wide">
-          Pilbum
+    <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950 transition-colors px-4">
+      <div className="w-full max-w-sm p-8 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-neutral-200/50 dark:border-neutral-800/50 rounded-2xl shadow-sm">
+        <h1 className="text-2xl font-medium text-neutral-900 dark:text-white mb-8 text-center tracking-wide">
+          {siteConfig.name}
         </h1>
 
         {/* DB not initialized */}
@@ -82,24 +83,24 @@ export default function LoginPage() {
           <div className="text-center text-neutral-500">检查数据库状态...</div>
         ) : !dbReady ? (
           <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-400">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-500 dark:text-neutral-400">
                 <ellipse cx="12" cy="5" rx="9" ry="3" />
                 <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
                 <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
               </svg>
             </div>
-            <h2 className="text-lg font-light text-white mb-2">首次使用，需要初始化</h2>
+            <h2 className="text-lg font-light text-neutral-900 dark:text-white mb-2">首次使用，需要初始化</h2>
             <p className="text-neutral-500 text-sm mb-6">将创建数据库表结构和默认管理员账户</p>
             <button
               onClick={handleInitDb}
               disabled={initializing}
-              className="w-full py-3 bg-white text-black rounded-lg font-medium hover:bg-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-xl font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {initializing ? "初始化中..." : "一键初始化"}
             </button>
             {initMessage && (
-              <p className={`mt-4 text-sm ${initMessage.includes("成功") ? "text-green-400" : "text-red-400"}`}>
+              <p className={`mt-4 text-sm ${initMessage.includes("成功") ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
                 {initMessage}
               </p>
             )}
@@ -113,7 +114,7 @@ export default function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="用户名"
-                className="w-full px-4 py-3 bg-neutral-900 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-600 transition-colors"
+                className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-600 transition-colors"
                 required
               />
             </div>
@@ -123,17 +124,17 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="密码"
-                className="w-full px-4 py-3 bg-neutral-900 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-600 transition-colors"
+                className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-600 transition-colors"
                 required
               />
             </div>
             {error && (
-              <p className="text-red-400 text-sm text-center">{error}</p>
+              <p className="text-red-600 dark:text-red-400 text-sm text-center">{error}</p>
             )}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-white text-black rounded-lg font-medium hover:bg-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-xl font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {loading ? "登录中..." : "登录"}
             </button>

@@ -3,8 +3,9 @@ import { isAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { hashPassword } from "@/lib/password";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { createUserSchema } from "@/lib/validators";
+import { randomUUID } from "crypto";
 
 // GET — list all users (admin only)
 export async function GET() {
@@ -48,21 +49,31 @@ export async function POST(request: NextRequest) {
 
     try {
         const passwordHash = await hashPassword(password);
+        const id = randomUUID();
+        const now = new Date().toISOString();
+
+        await db.insert(users).values({
+            id,
+            username,
+            passwordHash,
+            role: role || "user",
+            displayName: displayName || "",
+            mustChangePassword: true, // New users must change password on first login
+            createdAt: now,
+            updatedAt: now,
+        });
+
+        // Fetch the created user
         const [user] = await db
-            .insert(users)
-            .values({
-                username,
-                passwordHash,
-                role: role || "user",
-                displayName: displayName || "",
-                mustChangePassword: true, // New users must change password on first login
-            })
-            .returning({
+            .select({
                 id: users.id,
                 username: users.username,
                 role: users.role,
                 displayName: users.displayName,
-            });
+            })
+            .from(users)
+            .where(eq(users.id, id))
+            .limit(1);
 
         return NextResponse.json({ user }, { status: 201 });
     } catch (error: unknown) {

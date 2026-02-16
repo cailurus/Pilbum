@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
         .set({
             passwordHash: newHash,
             mustChangePassword: false,
-            updatedAt: new Date(),
+            updatedAt: new Date().toISOString(),
         })
         .where(eq(users.id, session.userId));
 
