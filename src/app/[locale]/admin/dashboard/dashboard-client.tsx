@@ -59,11 +59,12 @@ function SettingsDropdown({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const siteNameInputRef = useRef<HTMLInputElement>(null);
 
-  // Check for updates
-  const checkForUpdates = useCallback(async () => {
+  // Check for updates (forceRefresh bypasses cache)
+  const checkForUpdates = useCallback(async (forceRefresh = false) => {
     setCheckingUpdate(true);
     try {
-      const res = await fetch("/api/version");
+      const url = forceRefresh ? "/api/version?force=true" : "/api/version";
+      const res = await fetch(url);
       const data = await res.json();
       setUpdateInfo(data);
     } catch (error) {
@@ -316,7 +317,7 @@ function SettingsDropdown({
                     {t("admin.currentVersion")} v{APP_VERSION}
                   </span>
                   <button
-                    onClick={checkForUpdates}
+                    onClick={() => checkForUpdates(true)}
                     disabled={checkingUpdate}
                     className="text-xs text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-50 cursor-pointer"
                   >

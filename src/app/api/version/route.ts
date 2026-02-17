@@ -23,7 +23,11 @@ function compareVersions(a: string, b: string): number {
   return 0;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  // Support force refresh via query parameter
+  const { searchParams } = new URL(request.url);
+  const forceRefresh = searchParams.get("force") === "true";
+
   try {
     // Fetch latest release from GitHub API
     const response = await fetch(
@@ -33,7 +37,10 @@ export async function GET() {
           Accept: "application/vnd.github.v3+json",
           "User-Agent": "Pilbum-Update-Checker",
         },
-        next: { revalidate: 3600 }, // Cache for 1 hour
+        // Use no-store when force refresh, otherwise cache for 1 hour
+        ...(forceRefresh
+          ? { cache: "no-store" as const }
+          : { next: { revalidate: 3600 } }),
       }
     );
 
