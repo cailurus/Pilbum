@@ -1,47 +1,49 @@
 import { sql } from "drizzle-orm";
 import { db } from "./index";
+import { users } from "./schema";
 import { hashPassword } from "../password";
 import { randomUUID } from "crypto";
+import { dbLogger } from "../logger";
 
 /**
  * Check if the database schema is ready (both users and photos tables exist).
  */
 export async function checkSchema(): Promise<{
-    ready: boolean;
-    message: string;
+  ready: boolean;
+  message: string;
 }> {
-    try {
-        await db.run(sql`SELECT id FROM users LIMIT 1`);
-        await db.run(sql`SELECT id FROM photos LIMIT 1`);
-        return { ready: true, message: "数据库已就绪" };
-    } catch (error) {
-        console.error("Database check failed:", error);
-        return { ready: false, message: "数据库尚未初始化，需要创建表结构" };
-    }
+  try {
+    await db.execute(sql`SELECT id FROM users LIMIT 1`);
+    await db.execute(sql`SELECT id FROM photos LIMIT 1`);
+    return { ready: true, message: "Database is ready" };
+  } catch (error) {
+    dbLogger.info({ error }, "Database check: tables not found");
+    return { ready: false, message: "Database not initialized, tables need to be created" };
+  }
 }
 
 /**
  * Create all required tables and seed default admin user.
  * Uses IF NOT EXISTS so it's safe to call multiple times.
- * Compatible with SQLite.
+ * Compatible with PostgreSQL and PGlite.
  */
 export async function initSchema(): Promise<void> {
-    // Create users table (SQLite compatible)
-    await db.run(sql`
+  // Create users table
+  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       username TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'user',
       display_name TEXT DEFAULT '',
-      must_change_password INTEGER NOT NULL DEFAULT 0,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      must_change_password BOOLEAN NOT NULL DEFAULT false,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
     )
   `);
 
-    // Create photos table with all columns including extended EXIF fields (SQLite compatible)
-    await db.run(sql`
+  // Create photos table
+  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS photos (
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL DEFAULT '',
@@ -51,7 +53,7 @@ export async function initSchema(): Promise<void> {
       blur_data_url TEXT,
       width INTEGER NOT NULL,
       height INTEGER NOT NULL,
-      is_live_photo INTEGER NOT NULL DEFAULT 0,
+      is_live_photo BOOLEAN NOT NULL DEFAULT false,
       live_photo_video_url TEXT,
       camera_make TEXT,
       camera_model TEXT,
@@ -80,33 +82,51 @@ export async function initSchema(): Promise<void> {
       file_size INTEGER,
       mime_type TEXT,
       sort_order INTEGER NOT NULL DEFAULT 0,
-      is_visible INTEGER NOT NULL DEFAULT 1,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      is_visible BOOLEAN NOT NULL DEFAULT true,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
     )
   `);
 
-    // Create settings table (SQLite compatible)
-    await db.run(sql`
+  // Create settings table
+  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      updated_at TEXT NOT NULL
     )
   `);
 
-    // Seed default admin user (only if no users exist)
-    const result = await db.run(sql`SELECT count(*) as cnt FROM users`);
-    const count = (result as unknown as { cnt: number })?.cnt ?? 0;
+  // Create indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_photos_visible_sort
+    ON photos (is_visible, sort_order, created_at)
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_photos_created_at
+    ON photos (created_at)
+  `);
 
-    if (count === 0) {
-        const defaultPassword = process.env.ADMIN_DEFAULT_PASSWORD || "admin";
-        const passwordHash = await hashPassword(defaultPassword);
-        const id = randomUUID();
+  // Seed default admin user (only if no users exist)
+  const existingUsers = await db.select({ id: users.id }).from(users).limit(1);
 
-        await db.run(sql`
-      INSERT INTO users (id, username, password_hash, role, display_name, must_change_password)
-      VALUES (${id}, 'admin', ${passwordHash}, 'admin', '管理员', 1)
-    `);
-    }
+  if (existingUsers.length === 0) {
+    const defaultPassword = process.env.ADMIN_DEFAULT_PASSWORD || "admin";
+    const passwordHash = await hashPassword(defaultPassword);
+    const id = randomUUID();
+    const now = new Date().toISOString();
+
+    await db.insert(users).values({
+      id,
+      username: "admin",
+      passwordHash,
+      role: "admin",
+      displayName: "Admin",
+      mustChangePassword: true,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    dbLogger.info("Default admin user created");
+  }
 }

@@ -9,7 +9,14 @@ export class LocalStorageAdapter implements StorageAdapter {
     this.basePath = basePath || path.join(process.cwd(), "public", "uploads");
   }
 
+  private validateKey(key: string): void {
+    if (key.includes("..") || key.startsWith("/") || key.startsWith("\\")) {
+      throw new Error("Invalid storage key: path traversal not allowed");
+    }
+  }
+
   async upload(key: string, data: Buffer, _contentType: string): Promise<string> {
+    this.validateKey(key);
     const filePath = path.join(this.basePath, key);
     const dir = path.dirname(filePath);
     await fs.mkdir(dir, { recursive: true });
@@ -18,6 +25,7 @@ export class LocalStorageAdapter implements StorageAdapter {
   }
 
   async delete(key: string): Promise<void> {
+    this.validateKey(key);
     const filePath = path.join(this.basePath, key);
     try {
       await fs.unlink(filePath);

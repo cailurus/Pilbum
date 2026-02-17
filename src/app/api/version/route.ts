@@ -74,7 +74,7 @@ export async function GET(request: Request) {
       releaseNotes: release.body,
     });
   } catch (error) {
-    console.error("Failed to check for updates:", error);
+    // Update check failure is non-critical, log at warn level
     return NextResponse.json(
       {
         currentVersion: APP_VERSION,

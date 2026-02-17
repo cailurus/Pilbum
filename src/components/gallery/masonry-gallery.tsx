@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import type { Photo } from "@/lib/db/schema";
 import { PhotoCard } from "./photo-card";
 
@@ -13,6 +14,7 @@ export function MasonryGallery({
   initialPhotos,
   initialTotal,
 }: MasonryGalleryProps) {
+  const t = useTranslations("gallery");
   const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -58,7 +60,7 @@ export function MasonryGallery({
   if (photos.length === 0) {
     return (
       <div className="text-center text-neutral-500 dark:text-neutral-500 py-32">
-        <p className="text-lg">暂无照片</p>
+        <p className="text-lg">{t("noPhotos")}</p>
       </div>
     );
   }

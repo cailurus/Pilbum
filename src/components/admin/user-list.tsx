@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 interface UserInfo {
     id: string;
@@ -18,6 +19,7 @@ interface UserListProps {
 }
 
 export function UserList({ users, currentUserId, onUpdate }: UserListProps) {
+    const t = useTranslations();
     const [showAddForm, setShowAddForm] = useState(false);
     const [newUsername, setNewUsername] = useState("");
     const [newPassword, setNewPassword] = useState("");
@@ -54,20 +56,20 @@ export function UserList({ users, currentUserId, onUpdate }: UserListProps) {
                 setNewDisplayName("");
                 onUpdate();
             } else {
-                setError(data.error || "创建失败");
+                setError(data.error || t("common.error"));
             }
         } catch {
-            setError("请求失败");
+            setError(t("common.error"));
         } finally {
             setCreating(false);
         }
     }
 
     async function handleResetPassword(userId: string) {
-        const newPwd = prompt("请输入新密码（至少 6 位）：");
+        const newPwd = prompt(t("admin.resetPasswordPrompt"));
         if (!newPwd) return;
         if (newPwd.length < 6) {
-            alert("密码至少需要 6 个字符");
+            alert(t("admin.passwordTooShort"));
             return;
         }
 
@@ -80,7 +82,7 @@ export function UserList({ users, currentUserId, onUpdate }: UserListProps) {
             });
             onUpdate();
         } catch {
-            alert("重置密码失败");
+            alert(t("admin.resetPasswordFailed"));
         } finally {
             setResettingId(null);
         }
@@ -96,12 +98,12 @@ export function UserList({ users, currentUserId, onUpdate }: UserListProps) {
             });
             onUpdate();
         } catch {
-            alert("修改角色失败");
+            alert(t("admin.changeRoleFailed"));
         }
     }
 
     async function handleDelete(userId: string, username: string) {
-        if (!confirm(`确定要删除用户「${username}」吗？此操作不可撤销。`)) return;
+        if (!confirm(t("admin.deleteConfirmUser", { username }))) return;
 
         setDeletingId(userId);
         try {
@@ -112,10 +114,10 @@ export function UserList({ users, currentUserId, onUpdate }: UserListProps) {
             if (res.ok) {
                 onUpdate();
             } else {
-                alert(data.error || "删除失败");
+                alert(data.error || t("admin.deleteFailed"));
             }
         } catch {
-            alert("删除失败");
+            alert(t("admin.deleteFailed"));
         } finally {
             setDeletingId(null);
         }
@@ -125,12 +127,12 @@ export function UserList({ users, currentUserId, onUpdate }: UserListProps) {
         <div className="space-y-6">
             {/* Header with add user button */}
             <div className="flex items-center justify-between">
-                <h2 className="text-lg font-medium text-neutral-900 dark:text-white">用户列表</h2>
+                <h2 className="text-lg font-medium text-neutral-900 dark:text-white">{t("admin.userList")}</h2>
                 <button
                     onClick={() => setShowAddForm(!showAddForm)}
                     className="px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-xl text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors cursor-pointer"
                 >
-                    {showAddForm ? "取消" : "添加用户"}
+                    {showAddForm ? t("common.cancel") : t("admin.addUser")}
                 </button>
             </div>
 
@@ -140,13 +142,13 @@ export function UserList({ users, currentUserId, onUpdate }: UserListProps) {
                     onSubmit={handleCreate}
                     className="p-6 bg-neutral-50 dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 space-y-4 max-w-lg"
                 >
-                    <h3 className="text-sm text-neutral-500 dark:text-neutral-400 mb-2">新建用户</h3>
+                    <h3 className="text-sm text-neutral-500 dark:text-neutral-400 mb-2">{t("admin.newUser")}</h3>
                     <div className="grid grid-cols-2 gap-4">
                         <input
                             type="text"
                             value={newUsername}
                             onChange={(e) => setNewUsername(e.target.value)}
-                            placeholder="用户名"
+                            placeholder={t("auth.username")}
                             className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white text-sm focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-500"
                             required
                         />
@@ -154,7 +156,7 @@ export function UserList({ users, currentUserId, onUpdate }: UserListProps) {
                             type="password"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            placeholder="密码（至少 6 位）"
+                            placeholder={t("admin.passwordMinLength")}
                             className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white text-sm focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-500"
                             required
                             minLength={6}
@@ -163,7 +165,7 @@ export function UserList({ users, currentUserId, onUpdate }: UserListProps) {
                             type="text"
                             value={newDisplayName}
                             onChange={(e) => setNewDisplayName(e.target.value)}
-                            placeholder="显示名称（可选）"
+                            placeholder={t("admin.displayNameOptional")}
                             className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white text-sm focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-500"
                         />
                         <select
@@ -171,8 +173,8 @@ export function UserList({ users, currentUserId, onUpdate }: UserListProps) {
                             onChange={(e) => setNewRole(e.target.value)}
                             className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white text-sm focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-500"
                         >
-                            <option value="user">普通用户</option>
-                            <option value="admin">管理员</option>
+                            <option value="user">{t("admin.normalUser")}</option>
+                            <option value="admin">{t("admin.admin")}</option>
                         </select>
                     </div>
                     {error && <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>}
@@ -181,7 +183,7 @@ export function UserList({ users, currentUserId, onUpdate }: UserListProps) {
                         disabled={creating}
                         className="px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-xl text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
-                        {creating ? "创建中..." : "创建"}
+                        {creating ? t("admin.creating") : t("admin.create")}
                     </button>
                 </form>
             )}
@@ -212,20 +214,20 @@ export function UserList({ users, currentUserId, onUpdate }: UserListProps) {
                                                 : "bg-neutral-200 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"
                                             }`}
                                     >
-                                        {user.role === "admin" ? "管理员" : "用户"}
+                                        {user.role === "admin" ? t("admin.admin") : t("admin.user")}
                                     </span>
                                     {user.mustChangePassword && (
                                         <span className="px-2 py-0.5 rounded text-xs bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400">
-                                            待改密
+                                            {t("admin.pendingPasswordChange")}
                                         </span>
                                     )}
                                     {user.id === currentUserId && (
-                                        <span className="text-xs text-neutral-400 dark:text-neutral-600">（当前）</span>
+                                        <span className="text-xs text-neutral-400 dark:text-neutral-600">{t("admin.current")}</span>
                                     )}
                                 </div>
                                 <div className="text-xs text-neutral-500 mt-0.5">
-                                    @{user.username} · 创建于{" "}
-                                    {new Date(user.createdAt).toLocaleDateString("zh-CN")}
+                                    @{user.username} · {t("admin.createdOn")}{" "}
+                                    {new Date(user.createdAt).toLocaleDateString()}
                                 </div>
                             </div>
                         </div>
@@ -237,21 +239,21 @@ export function UserList({ users, currentUserId, onUpdate }: UserListProps) {
                                     onClick={() => handleToggleRole(user.id, user.role)}
                                     className="px-3 py-1.5 text-xs text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
                                 >
-                                    {user.role === "admin" ? "降为用户" : "设为管理员"}
+                                    {user.role === "admin" ? t("admin.demoteToUser") : t("admin.promoteToAdmin")}
                                 </button>
                                 <button
                                     onClick={() => handleResetPassword(user.id)}
                                     disabled={resettingId === user.id}
                                     className="px-3 py-1.5 text-xs text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                                 >
-                                    重置密码
+                                    {t("admin.resetPassword")}
                                 </button>
                                 <button
                                     onClick={() => handleDelete(user.id, user.username)}
                                     disabled={deletingId === user.id}
                                     className="px-3 py-1.5 text-xs text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                                 >
-                                    {deletingId === user.id ? "删除中..." : "删除"}
+                                    {deletingId === user.id ? t("common.deleting") : t("common.delete")}
                                 </button>
                             </div>
                         )}

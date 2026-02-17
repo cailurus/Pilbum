@@ -22,7 +22,7 @@ export async function GET() {
 
     return NextResponse.json({ settings: result });
   } catch (error) {
-    console.error("Failed to fetch settings:", error);
+    // Settings table may not exist yet - return defaults silently
     // Return defaults on error
     return NextResponse.json({ settings: DEFAULT_SETTINGS });
   }

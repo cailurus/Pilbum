@@ -21,6 +21,14 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  // If photo is hidden, only authenticated users can see it
+  if (!photo[0].isVisible) {
+    const authed = await isAuthenticated();
+    if (!authed) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+  }
+
   return NextResponse.json(
     { photo: photo[0] },
     {

@@ -1,26 +1,13 @@
 import { db } from "@/lib/db";
-import { photos, settings, SETTING_KEYS } from "@/lib/db/schema";
+import { photos } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { PhotoDetail } from "./photo-detail";
 import type { Metadata } from "next";
-import { siteConfig } from "@/config/site.config";
+import { getSiteName } from "@/lib/site";
 
 interface Props {
   params: Promise<{ id: string }>;
-}
-
-async function getSiteName(): Promise<string> {
-  try {
-    const result = await db
-      .select()
-      .from(settings)
-      .where(eq(settings.key, SETTING_KEYS.SITE_NAME))
-      .limit(1);
-    return result[0]?.value || siteConfig.name;
-  } catch {
-    return siteConfig.name;
-  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

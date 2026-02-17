@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { APP_VERSION } from "@/config/version";
 
 interface SystemInfo {
@@ -37,6 +38,7 @@ interface SystemStatusModalProps {
 }
 
 export function SystemStatusModal({ isOpen, onClose }: SystemStatusModalProps) {
+  const t = useTranslations("admin");
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -86,15 +88,15 @@ export function SystemStatusModal({ isOpen, onClose }: SystemStatusModalProps) {
   const getProviderLabel = (provider: string) => {
     switch (provider) {
       case "local":
-        return "本地";
+        return t("local");
       case "postgres":
         return "PostgreSQL";
       case "s3":
-        return "S3 兼容";
+        return t("s3Compatible");
       case "azure":
-        return "Azure";
+        return t("azure");
       case "supabase":
-        return "Supabase";
+        return t("supabase");
       default:
         return provider;
     }
@@ -120,7 +122,7 @@ export function SystemStatusModal({ isOpen, onClose }: SystemStatusModalProps) {
               </svg>
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">系统状态</h2>
+              <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">{t("systemStatusTitle")}</h2>
               <p className="text-xs text-neutral-500 dark:text-neutral-400">Pilbum v{APP_VERSION}</p>
             </div>
           </div>
@@ -148,7 +150,7 @@ export function SystemStatusModal({ isOpen, onClose }: SystemStatusModalProps) {
                     : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
                 }`}
               >
-                {tab === "overview" ? "概览" : tab === "database" ? "数据库" : "存储"}
+                {tab === "overview" ? t("overview") : tab === "database" ? t("database") : t("storage")}
               </button>
             ))}
           </div>
@@ -181,25 +183,25 @@ export function SystemStatusModal({ isOpen, onClose }: SystemStatusModalProps) {
                       <div className="text-2xl font-bold text-neutral-900 dark:text-white">
                         {systemInfo.database.records.photos}
                       </div>
-                      <div className="text-sm text-neutral-500 dark:text-neutral-400">照片数量</div>
+                      <div className="text-sm text-neutral-500 dark:text-neutral-400">{t("photoCount")}</div>
                     </div>
                     <div className="p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl">
                       <div className="text-2xl font-bold text-neutral-900 dark:text-white">
                         {systemInfo.storage.photoStorageSizeFormatted}
                       </div>
-                      <div className="text-sm text-neutral-500 dark:text-neutral-400">照片占用</div>
+                      <div className="text-sm text-neutral-500 dark:text-neutral-400">{t("photoStorage")}</div>
                     </div>
                     <div className="p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl">
                       <div className="text-2xl font-bold text-neutral-900 dark:text-white">
                         {systemInfo.database.records.users}
                       </div>
-                      <div className="text-sm text-neutral-500 dark:text-neutral-400">用户数量</div>
+                      <div className="text-sm text-neutral-500 dark:text-neutral-400">{t("userCount")}</div>
                     </div>
                   </div>
 
                   {/* Storage Overview */}
                   <div className="p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl">
-                    <h3 className="text-sm font-medium text-neutral-900 dark:text-white mb-3">存储配置</h3>
+                    <h3 className="text-sm font-medium text-neutral-900 dark:text-white mb-3">{t("storageConfig")}</h3>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
@@ -210,7 +212,7 @@ export function SystemStatusModal({ isOpen, onClose }: SystemStatusModalProps) {
                           </svg>
                         </div>
                         <div>
-                          <div className="text-sm font-medium text-neutral-900 dark:text-white">数据库</div>
+                          <div className="text-sm font-medium text-neutral-900 dark:text-white">{t("database")}</div>
                           <div className="text-xs text-neutral-500 dark:text-neutral-400">
                             {systemInfo.database.config.type}
                           </div>
@@ -231,7 +233,7 @@ export function SystemStatusModal({ isOpen, onClose }: SystemStatusModalProps) {
                           </svg>
                         </div>
                         <div>
-                          <div className="text-sm font-medium text-neutral-900 dark:text-white">对象存储</div>
+                          <div className="text-sm font-medium text-neutral-900 dark:text-white">{t("objectStorage")}</div>
                           <div className="text-xs text-neutral-500 dark:text-neutral-400">
                             {systemInfo.storage.config.type}
                           </div>
@@ -245,18 +247,19 @@ export function SystemStatusModal({ isOpen, onClose }: SystemStatusModalProps) {
 
                   {/* Environment */}
                   <div className="p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl">
-                    <h3 className="text-sm font-medium text-neutral-900 dark:text-white mb-3">运行环境</h3>
+                    <h3 className="text-sm font-medium text-neutral-900 dark:text-white mb-3">{t("environment")}</h3>
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       <div>
                         <div className="text-neutral-500 dark:text-neutral-400">Node.js</div>
+
                         <div className="font-mono text-neutral-900 dark:text-white">{systemInfo.environment.nodeVersion}</div>
                       </div>
                       <div>
-                        <div className="text-neutral-500 dark:text-neutral-400">平台</div>
+                        <div className="text-neutral-500 dark:text-neutral-400">{t("platform")}</div>
                         <div className="font-mono text-neutral-900 dark:text-white">{systemInfo.environment.platform}</div>
                       </div>
                       <div>
-                        <div className="text-neutral-500 dark:text-neutral-400">架构</div>
+                        <div className="text-neutral-500 dark:text-neutral-400">{t("architecture")}</div>
                         <div className="font-mono text-neutral-900 dark:text-white">{systemInfo.environment.arch}</div>
                       </div>
                     </div>
@@ -270,7 +273,7 @@ export function SystemStatusModal({ isOpen, onClose }: SystemStatusModalProps) {
                   {/* Provider Info */}
                   <div className="p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-sm font-medium text-neutral-900 dark:text-white">数据库类型</h3>
+                      <h3 className="text-sm font-medium text-neutral-900 dark:text-white">{t("databaseType")}</h3>
                       <span className={`px-2 py-1 rounded-lg text-xs font-medium ${getProviderBadgeColor(systemInfo.database.provider)}`}>
                         {systemInfo.database.config.type}
                       </span>
@@ -292,22 +295,22 @@ export function SystemStatusModal({ isOpen, onClose }: SystemStatusModalProps) {
 
                   {/* Database Stats */}
                   <div className="p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl">
-                    <h3 className="text-sm font-medium text-neutral-900 dark:text-white mb-4">数据统计</h3>
+                    <h3 className="text-sm font-medium text-neutral-900 dark:text-white mb-4">{t("database")}</h3>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-neutral-500 dark:text-neutral-400">数据库大小</span>
+                        <span className="text-neutral-500 dark:text-neutral-400">{t("databaseSize")}</span>
                         <span className="font-mono text-neutral-900 dark:text-white">{systemInfo.database.sizeFormatted}</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-neutral-500 dark:text-neutral-400">照片记录</span>
+                        <span className="text-neutral-500 dark:text-neutral-400">{t("photoRecords")}</span>
                         <span className="font-mono text-neutral-900 dark:text-white">{systemInfo.database.records.photos}</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-neutral-500 dark:text-neutral-400">用户记录</span>
+                        <span className="text-neutral-500 dark:text-neutral-400">{t("userRecords")}</span>
                         <span className="font-mono text-neutral-900 dark:text-white">{systemInfo.database.records.users}</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-neutral-500 dark:text-neutral-400">设置项</span>
+                        <span className="text-neutral-500 dark:text-neutral-400">{t("settingItems")}</span>
                         <span className="font-mono text-neutral-900 dark:text-white">{systemInfo.database.records.settings}</span>
                       </div>
                     </div>
@@ -323,9 +326,9 @@ export function SystemStatusModal({ isOpen, onClose }: SystemStatusModalProps) {
                           <line x1="12" y1="16" x2="12.01" y2="16" />
                         </svg>
                         <div className="text-sm text-amber-800 dark:text-amber-200">
-                          <p className="font-medium">使用本地 SQLite 数据库</p>
+                          <p className="font-medium">{t("localSqliteNote")}</p>
                           <p className="mt-1 text-amber-600 dark:text-amber-300">
-                            如需云端部署，建议配置 PostgreSQL 数据库（如 Supabase、Neon）以获得更好的性能和数据安全性。
+                            {t("localSqliteHint")}
                           </p>
                         </div>
                       </div>
@@ -340,7 +343,7 @@ export function SystemStatusModal({ isOpen, onClose }: SystemStatusModalProps) {
                   {/* Provider Info */}
                   <div className="p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-sm font-medium text-neutral-900 dark:text-white">存储类型</h3>
+                      <h3 className="text-sm font-medium text-neutral-900 dark:text-white">{t("storageType")}</h3>
                       <span className={`px-2 py-1 rounded-lg text-xs font-medium ${getProviderBadgeColor(systemInfo.storage.provider)}`}>
                         {systemInfo.storage.config.type}
                       </span>
@@ -362,16 +365,16 @@ export function SystemStatusModal({ isOpen, onClose }: SystemStatusModalProps) {
 
                   {/* Storage Stats */}
                   <div className="p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl">
-                    <h3 className="text-sm font-medium text-neutral-900 dark:text-white mb-4">存储统计</h3>
+                    <h3 className="text-sm font-medium text-neutral-900 dark:text-white mb-4">{t("totalPhotoSize")}</h3>
                     <div className="space-y-3">
                       {systemInfo.storage.provider === "local" && (
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-neutral-500 dark:text-neutral-400">目录大小</span>
+                          <span className="text-neutral-500 dark:text-neutral-400">{t("directorySize")}</span>
                           <span className="font-mono text-neutral-900 dark:text-white">{systemInfo.storage.sizeFormatted}</span>
                         </div>
                       )}
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-neutral-500 dark:text-neutral-400">照片文件总大小</span>
+                        <span className="text-neutral-500 dark:text-neutral-400">{t("totalPhotoSize")}</span>
                         <span className="font-mono text-neutral-900 dark:text-white">{systemInfo.storage.photoStorageSizeFormatted}</span>
                       </div>
                     </div>
@@ -387,9 +390,9 @@ export function SystemStatusModal({ isOpen, onClose }: SystemStatusModalProps) {
                           <line x1="12" y1="16" x2="12.01" y2="16" />
                         </svg>
                         <div className="text-sm text-amber-800 dark:text-amber-200">
-                          <p className="font-medium">使用本地文件存储</p>
+                          <p className="font-medium">{t("localStorageNote")}</p>
                           <p className="mt-1 text-amber-600 dark:text-amber-300">
-                            如需云端部署，建议配置对象存储服务（如 Cloudflare R2、AWS S3）以获得更好的可靠性和 CDN 加速。
+                            {t("localStorageHint")}
                           </p>
                         </div>
                       </div>

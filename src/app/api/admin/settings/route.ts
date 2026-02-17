@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { settings } from "@/lib/db/schema";
+import { settings, SETTING_KEYS, type SettingKey } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { isAdmin } from "@/lib/auth";
+import { logger } from "@/lib/logger";
+
+const adminSettingsLogger = logger.child({ module: "admin-settings" });
+
+// Allowed setting keys
+const ALLOWED_KEYS = new Set<string>(Object.values(SETTING_KEYS));
 
 // PUT /api/admin/settings - Update settings (admin only)
 export async function PUT(request: NextRequest) {
@@ -18,6 +24,14 @@ export async function PUT(request: NextRequest) {
     if (!key || value === undefined) {
       return NextResponse.json(
         { error: "Missing key or value" },
+        { status: 400 }
+      );
+    }
+
+    // Validate key against whitelist
+    if (!ALLOWED_KEYS.has(key)) {
+      return NextResponse.json(
+        { error: "Invalid setting key" },
         { status: 400 }
       );
     }
@@ -44,7 +58,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to update setting:", error);
+    adminSettingsLogger.error({ error }, "Failed to update setting");
     return NextResponse.json(
       { error: "Failed to update setting" },
       { status: 500 }
@@ -68,7 +82,7 @@ export async function GET() {
 
     return NextResponse.json({ settings: result });
   } catch (error) {
-    console.error("Failed to fetch settings:", error);
+    adminSettingsLogger.error({ error }, "Failed to fetch settings");
     return NextResponse.json(
       { error: "Failed to fetch settings" },
       { status: 500 }

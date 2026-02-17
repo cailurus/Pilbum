@@ -6,6 +6,8 @@ import { useTranslations } from "next-intl";
 import { isHeicFile } from "@/lib/heic";
 import { formatFileSize } from "@/lib/format";
 
+// Upload form uses both "setup" and "upload" namespaces
+
 interface UploadFormProps {
   onUploadComplete: () => void;
 }
@@ -29,7 +31,8 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
   const [storageConfigured, setStorageConfigured] = useState(true);
   const [showStorageModal, setShowStorageModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const t = useTranslations("setup");
+  const tSetup = useTranslations("setup");
+  const tUpload = useTranslations("upload");
 
   // Check if storage is configured
   useEffect(() => {
@@ -166,7 +169,7 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
           );
           resolve(true);
         } else {
-          let errorMsg = "上传失败";
+          let errorMsg = "Upload failed";
           try {
             const resp = JSON.parse(xhr.responseText);
             errorMsg = resp.error || errorMsg;
@@ -186,7 +189,7 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
         setFiles((prev) =>
           prev.map((f) =>
             f.id === uploadFile.id
-              ? { ...f, status: "error", error: "网络错误" }
+              ? { ...f, status: "error", error: tUpload("failed") }
               : f
           )
         );
@@ -283,13 +286,13 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
             </svg>
           </div>
           <p className="text-lg font-medium text-neutral-700 dark:text-neutral-300">
-            拖拽照片到这里，或点击选择
+            {tUpload("dragOrClick")}
           </p>
           <p className="text-sm text-neutral-500">
-            支持 JPEG、PNG、HEIC/HEIF · 可同时选择多张
+            {tUpload("supportedFormats")}
           </p>
           <p className="text-xs text-neutral-400 dark:text-neutral-600 mt-2">
-            Live Photo: 同时拖入 HEIC 和同名 MOV 文件，会自动配对
+            {tUpload("livePhotoHint")}
           </p>
         </div>
         <input
@@ -314,24 +317,24 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                {t("storageNotConfigured")}
+                {tSetup("storageNotConfigured")}
               </h3>
             </div>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
-              {t("storageNotConfiguredDesc")}
+              {tSetup("storageNotConfiguredDesc")}
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => setShowStorageModal(false)}
                 className="px-4 py-2 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
               >
-                {t("dismiss")}
+                {tSetup("dismiss")}
               </button>
               <Link
                 href="/setup/storage"
                 className="px-4 py-2 text-sm font-medium bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors"
               >
-                {t("configureStorage")}
+                {tSetup("configureStorage")}
               </Link>
             </div>
           </div>
@@ -346,7 +349,7 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-neutral-500 dark:text-neutral-400">
-                  总进度
+                  {tUpload("totalProgress")}
                 </span>
                 <span className="text-neutral-700 dark:text-neutral-300 tabular-nums">{totalProgress}%</span>
               </div>
@@ -432,7 +435,7 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
                     <>
                       {/* Attach Live Photo video */}
                       <label
-                        title="附加 Live Photo 视频"
+                        title={tUpload("attachLiveVideo")}
                         className="p-1.5 text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 cursor-pointer transition-colors"
                       >
                         <svg
@@ -463,7 +466,7 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
                       <button
                         onClick={() => removeFile(f.id)}
                         className="p-1.5 text-neutral-400 dark:text-neutral-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                        title="移除"
+                        title={tUpload("remove")}
                       >
                         <svg
                           className="w-4 h-4"
@@ -514,9 +517,9 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
                         )
                       }
                       className="text-xs px-2 py-1 text-red-400 hover:text-red-300 border border-red-800/50 rounded transition-colors"
-                      title="重试"
+                      title={tUpload("retryUpload")}
                     >
-                      重试
+                      {tUpload("retryUpload")}
                     </button>
                   )}
                 </div>
@@ -526,7 +529,7 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
                   <button
                     onClick={() => removeVideo(f.id)}
                     className="absolute top-1 right-1 text-[10px] px-1 py-0.5 bg-purple-900/60 text-purple-300 rounded hover:bg-red-900/60 hover:text-red-300 transition-colors"
-                    title="移除视频"
+                    title={tUpload("removeVideo")}
                   >
                     ✕ {f.videoFile.name}
                   </button>
@@ -538,12 +541,12 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
           {/* Action bar */}
           <div className="flex items-center justify-between pt-2">
             <div className="text-sm text-neutral-500 space-x-3">
-              <span>{files.length} 张照片</span>
+              <span>{tUpload("photosCount", { count: files.length })}</span>
               {successCount > 0 && (
-                <span className="text-green-500">{successCount} 成功</span>
+                <span className="text-green-500">{tUpload("successCount", { count: successCount })}</span>
               )}
               {errorCount > 0 && (
-                <span className="text-red-400">{errorCount} 失败</span>
+                <span className="text-red-400">{tUpload("errorCount", { count: errorCount })}</span>
               )}
             </div>
 
@@ -554,7 +557,7 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
                 disabled={uploading}
                 className="px-4 py-2 text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
               >
-                清空
+                {tUpload("clearAll")}
               </button>
               <button
                 type="button"
@@ -563,8 +566,8 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
                 className="px-6 py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-xl text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 {uploading
-                  ? `上传中 (${successCount}/${files.length})`
-                  : `上传 ${pendingCount} 张照片`}
+                  ? tUpload("uploadingProgress", { done: successCount, total: files.length })
+                  : tUpload("uploadCount", { count: pendingCount })}
               </button>
             </div>
           </div>

@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { photos, users, settings } from "@/lib/db/schema";
 import { sql } from "drizzle-orm";
 import { APP_VERSION } from "@/config/version";
+import { logger } from "@/lib/logger";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -180,7 +181,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("Failed to get system info:", error);
+    logger.error({ error }, "Failed to get system info");
     return NextResponse.json(
       { error: "Failed to get system info" },
       { status: 500 }

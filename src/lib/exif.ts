@@ -47,37 +47,37 @@ function formatShutterSpeed(exposureTime: number): string {
   return `1/${denominator}s`;
 }
 
-// Map exposure program codes to readable names
+// Map exposure program codes to readable names (English identifiers for i18n)
 function getExposureProgram(code: number | undefined): string | undefined {
   if (code === undefined) return undefined;
   const programs: Record<number, string> = {
-    0: "未定义",
-    1: "手动",
-    2: "程序自动",
-    3: "光圈优先",
-    4: "快门优先",
-    5: "创意模式",
-    6: "运动模式",
-    7: "人像模式",
-    8: "风景模式",
+    0: "Not Defined",
+    1: "Manual",
+    2: "Program AE",
+    3: "Aperture Priority",
+    4: "Shutter Priority",
+    5: "Creative",
+    6: "Action",
+    7: "Portrait",
+    8: "Landscape",
   };
-  return programs[code] || `未知 (${code})`;
+  return programs[code] || `Unknown (${code})`;
 }
 
 // Map metering mode codes to readable names
 function getMeteringMode(code: number | undefined): string | undefined {
   if (code === undefined) return undefined;
   const modes: Record<number, string> = {
-    0: "未知",
-    1: "平均测光",
-    2: "中央重点",
-    3: "点测光",
-    4: "多点测光",
-    5: "评价测光",
-    6: "局部测光",
-    255: "其他",
+    0: "Unknown",
+    1: "Average",
+    2: "Center-Weighted",
+    3: "Spot",
+    4: "Multi-Spot",
+    5: "Evaluative",
+    6: "Partial",
+    255: "Other",
   };
-  return modes[code] || `未知 (${code})`;
+  return modes[code] || `Unknown (${code})`;
 }
 
 // Map flash codes to readable names
@@ -87,18 +87,18 @@ function getFlashMode(code: number | undefined): string | undefined {
   const returnDetected = (code & 6) === 6;
   const mode = (code >> 3) & 3;
 
-  let result = fired ? "已闪光" : "未闪光";
-  if (mode === 1) result += " (强制)";
-  else if (mode === 2) result += " (禁用)";
-  else if (mode === 3) result += " (自动)";
-  if (returnDetected) result += " (回光检测)";
+  let result = fired ? "Fired" : "No Flash";
+  if (mode === 1) result += " (Forced)";
+  else if (mode === 2) result += " (Suppressed)";
+  else if (mode === 3) result += " (Auto)";
+  if (returnDetected) result += " (Return Detected)";
   return result;
 }
 
 // Map white balance codes to readable names
 function getWhiteBalance(code: number | undefined): string | undefined {
   if (code === undefined) return undefined;
-  return code === 0 ? "自动" : "手动";
+  return code === 0 ? "Auto" : "Manual";
 }
 
 // Map color space codes to readable names
@@ -107,20 +107,20 @@ function getColorSpace(code: number | undefined): string | undefined {
   const spaces: Record<number, string> = {
     1: "sRGB",
     2: "Adobe RGB",
-    65535: "未校准",
+    65535: "Uncalibrated",
   };
-  return spaces[code] || `未知 (${code})`;
+  return spaces[code] || `Unknown (${code})`;
 }
 
 // Map exposure mode codes to readable names
 function getExposureMode(code: number | undefined): string | undefined {
   if (code === undefined) return undefined;
   const modes: Record<number, string> = {
-    0: "自动曝光",
-    1: "手动曝光",
-    2: "自动包围曝光",
+    0: "Auto",
+    1: "Manual",
+    2: "Auto Bracket",
   };
-  return modes[code] || `未知 (${code})`;
+  return modes[code] || `Unknown (${code})`;
 }
 
 /**

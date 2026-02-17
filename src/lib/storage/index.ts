@@ -1,6 +1,7 @@
 import { StorageAdapter } from "./types";
 import { LocalStorageAdapter } from "./local";
 import { AzureStorageAdapter } from "./azure";
+import { S3StorageAdapter } from "./s3";
 
 let storageInstance: StorageAdapter | null = null;
 
@@ -10,6 +11,9 @@ export function getStorage(): StorageAdapter {
   const provider = process.env.STORAGE_PROVIDER || "local";
 
   switch (provider) {
+    case "s3":
+      storageInstance = new S3StorageAdapter();
+      break;
     case "azure":
       storageInstance = new AzureStorageAdapter();
       break;

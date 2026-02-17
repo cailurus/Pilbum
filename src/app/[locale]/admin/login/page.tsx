@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { siteConfig } from "@/config/site.config";
 
 export default function LoginPage() {
@@ -13,6 +14,7 @@ export default function LoginPage() {
   const [initializing, setInitializing] = useState(false);
   const [initMessage, setInitMessage] = useState("");
   const router = useRouter();
+  const t = useTranslations();
 
   // Check DB status on mount
   useEffect(() => {
@@ -32,10 +34,10 @@ export default function LoginPage() {
         setDbReady(true);
         setInitMessage(data.message);
       } else {
-        setInitMessage(data.error || "初始化失败");
+        setInitMessage(data.error || t("auth.initFailed"));
       }
     } catch {
-      setInitMessage("初始化请求失败");
+      setInitMessage(t("auth.initFailed"));
     } finally {
       setInitializing(false);
     }
@@ -62,10 +64,10 @@ export default function LoginPage() {
           router.push("/admin/dashboard");
         }
       } else {
-        setError(data.error || "登录失败");
+        setError(data.error || t("auth.loginError"));
       }
     } catch {
-      setError("登录失败，请重试");
+      setError(t("auth.loginFailed"));
     } finally {
       setLoading(false);
     }
@@ -80,7 +82,7 @@ export default function LoginPage() {
 
         {/* DB not initialized */}
         {dbReady === null ? (
-          <div className="text-center text-neutral-500">检查数据库状态...</div>
+          <div className="text-center text-neutral-500">{t("auth.checkingDb")}</div>
         ) : !dbReady ? (
           <div className="text-center">
             <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center">
@@ -90,17 +92,17 @@ export default function LoginPage() {
                 <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
               </svg>
             </div>
-            <h2 className="text-lg font-light text-neutral-900 dark:text-white mb-2">首次使用，需要初始化</h2>
-            <p className="text-neutral-500 text-sm mb-6">将创建数据库表结构和默认管理员账户</p>
+            <h2 className="text-lg font-light text-neutral-900 dark:text-white mb-2">{t("auth.firstTimeInit")}</h2>
+            <p className="text-neutral-500 text-sm mb-6">{t("auth.initDescription")}</p>
             <button
               onClick={handleInitDb}
               disabled={initializing}
               className="w-full py-3 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-xl font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              {initializing ? "初始化中..." : "一键初始化"}
+              {initializing ? t("auth.initializing") : t("auth.initButton")}
             </button>
             {initMessage && (
-              <p className={`mt-4 text-sm ${initMessage.includes("成功") ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+              <p className={`mt-4 text-sm ${initMessage.includes("success") || initMessage.includes("成功") ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
                 {initMessage}
               </p>
             )}
@@ -113,7 +115,7 @@ export default function LoginPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="用户名"
+                placeholder={t("auth.username")}
                 className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-600 transition-colors"
                 required
               />
@@ -123,7 +125,7 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="密码"
+                placeholder={t("auth.password")}
                 className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-600 transition-colors"
                 required
               />
@@ -136,7 +138,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-3 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-xl font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              {loading ? "登录中..." : "登录"}
+              {loading ? t("auth.loggingIn") : t("auth.login")}
             </button>
           </form>
         )}

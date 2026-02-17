@@ -40,6 +40,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // File size limit: 50MB
+    const MAX_FILE_SIZE = 50 * 1024 * 1024;
+    if (imageFile.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: "File too large. Maximum size is 50MB." },
+        { status: 413 }
+      );
+    }
+
     const storage = getStorage();
     const photoId = uuidv4();
     const imageBuffer = Buffer.from(await imageFile.arrayBuffer());

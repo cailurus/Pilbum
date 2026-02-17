@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 import { MasonryGallery } from "@/components/gallery/masonry-gallery";
 import type { Photo } from "@/lib/db/schema";
 import { siteConfig } from "@/config/site.config";
+import { getSiteName } from "@/lib/site";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import Link from "next/link";
@@ -12,17 +13,6 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
-
-// Helper function to get site name from settings
-async function getSiteName(): Promise<string> {
-  try {
-    const allSettings = await db.select().from(settings);
-    const siteNameSetting = allSettings.find(s => s.key === SETTING_KEYS.SITE_NAME);
-    return siteNameSetting?.value || siteConfig.name;
-  } catch {
-    return siteConfig.name;
-  }
-}
 
 export async function generateMetadata(): Promise<Metadata> {
   const siteName = await getSiteName();

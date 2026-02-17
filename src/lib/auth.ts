@@ -15,6 +15,13 @@ export interface SessionData {
 // Note: auto-generated secrets don't persist across full process restarts.
 const globalForAuth = globalThis as unknown as { _sessionSecret: string | undefined };
 if (!globalForAuth._sessionSecret) {
+  if (!process.env.SESSION_SECRET && process.env.NODE_ENV === "production") {
+    console.warn(
+      "[auth] WARNING: SESSION_SECRET is not set. Sessions will not persist across " +
+      "server restarts or serverless function instances. Set SESSION_SECRET in your " +
+      "environment variables for production deployments."
+    );
+  }
   globalForAuth._sessionSecret =
     process.env.SESSION_SECRET || randomBytes(32).toString("hex");
 }

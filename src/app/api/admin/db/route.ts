@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { checkSchema, initSchema } from "@/lib/db/migrate";
+import { dbLogger } from "@/lib/logger";
 
 // GET — check database status (no auth required, so login page can check too)
 export async function GET() {
@@ -20,7 +21,7 @@ export async function POST() {
         await initSchema();
         return NextResponse.json({ success: true, message: "数据库初始化成功，默认管理员账户：admin / admin" });
     } catch (error) {
-        console.error("Database init failed:", error);
+        dbLogger.error({ error }, "Database init failed");
         return NextResponse.json(
             { error: "数据库初始化失败", detail: String(error) },
             { status: 500 }

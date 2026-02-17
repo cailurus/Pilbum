@@ -1,21 +1,23 @@
 import {
-  sqliteTable,
+  pgTable,
   text,
   integer,
   real,
-} from "drizzle-orm/sqlite-core";
+  boolean,
+  index,
+} from "drizzle-orm/pg-core";
 
 // ─── Users ───────────────────────────────────────────────
 
-export const users = sqliteTable("users", {
+export const users = pgTable("users", {
   id: text("id").primaryKey(),
   username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: text("role", { enum: ["admin", "user"] }).notNull().default("user"),
   displayName: text("display_name").default(""),
-  mustChangePassword: integer("must_change_password", { mode: "boolean" }).notNull().default(false),
-  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
-  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
+  mustChangePassword: boolean("must_change_password").notNull().default(false),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
 });
 
 export type User = typeof users.$inferSelect;
@@ -23,7 +25,7 @@ export type NewUser = typeof users.$inferInsert;
 
 // ─── Photos ──────────────────────────────────────────────
 
-export const photos = sqliteTable("photos", {
+export const photos = pgTable("photos", {
   id: text("id").primaryKey(),
   title: text("title").notNull().default(""),
   description: text("description").default(""),
@@ -38,7 +40,7 @@ export const photos = sqliteTable("photos", {
   height: integer("height").notNull(),
 
   // Live Photo
-  isLivePhoto: integer("is_live_photo", { mode: "boolean" }).notNull().default(false),
+  isLivePhoto: boolean("is_live_photo").notNull().default(false),
   livePhotoVideoUrl: text("live_photo_video_url"),
 
   // EXIF - Camera info
@@ -77,20 +79,23 @@ export const photos = sqliteTable("photos", {
   fileSize: integer("file_size"),
   mimeType: text("mime_type"),
   sortOrder: integer("sort_order").notNull().default(0),
-  isVisible: integer("is_visible", { mode: "boolean" }).notNull().default(true),
-  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
-  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
-});
+  isVisible: boolean("is_visible").notNull().default(true),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+}, (table) => [
+  index("idx_photos_visible_sort").on(table.isVisible, table.sortOrder, table.createdAt),
+  index("idx_photos_created_at").on(table.createdAt),
+]);
 
 export type Photo = typeof photos.$inferSelect;
 export type NewPhoto = typeof photos.$inferInsert;
 
 // ─── Settings ─────────────────────────────────────────────
 
-export const settings = sqliteTable("settings", {
+export const settings = pgTable("settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
-  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").notNull(),
 });
 
 export type Setting = typeof settings.$inferSelect;
@@ -101,3 +106,5 @@ export const SETTING_KEYS = {
   SHOW_LOGIN_BUTTON: "show_login_button",
   SITE_NAME: "site_name",
 } as const;
+
+export type SettingKey = typeof SETTING_KEYS[keyof typeof SETTING_KEYS];

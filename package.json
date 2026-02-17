@@ -15,6 +15,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.991.0",
     "@azure/storage-blob": "^12.30.0",
     "@electric-sql/pglite": "^0.3.15",
     "@upstash/ratelimit": "^2.0.8",

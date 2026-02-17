@@ -1,8 +1,5 @@
 import { StorageAdapter } from "./types";
-import {
-  BlobServiceClient,
-  StorageSharedKeyCredential,
-} from "@azure/storage-blob";
+import { BlobServiceClient } from "@azure/storage-blob";
 
 export class AzureStorageAdapter implements StorageAdapter {
   private containerClient;
