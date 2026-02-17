@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { isHeicFile } from "@/lib/heic";
 import { formatFileSize } from "@/lib/format";
 
@@ -24,7 +26,18 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [storageConfigured, setStorageConfigured] = useState(true);
+  const [showStorageModal, setShowStorageModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const t = useTranslations("setup");
+
+  // Check if storage is configured
+  useEffect(() => {
+    fetch("/api/config/storage")
+      .then((res) => res.json())
+      .then((data) => setStorageConfigured(data.configured))
+      .catch(() => setStorageConfigured(true)); // Assume configured on error
+  }, []);
 
   const addFiles = useCallback((newFiles: FileList | File[]) => {
     const allFiles = Array.from(newFiles);
@@ -186,6 +199,12 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
   }
 
   async function handleUpload() {
+    // Check storage configuration first
+    if (!storageConfigured) {
+      setShowStorageModal(true);
+      return;
+    }
+
     const pendingFiles = files.filter((f) => f.status === "pending");
     if (pendingFiles.length === 0) return;
 
@@ -283,6 +302,41 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
           disabled={uploading}
         />
       </div>
+
+      {/* Storage not configured modal */}
+      {showStorageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 max-w-md mx-4 shadow-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+                <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
+                {t("storageNotConfigured")}
+              </h3>
+            </div>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
+              {t("storageNotConfiguredDesc")}
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setShowStorageModal(false)}
+                className="px-4 py-2 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
+              >
+                {t("dismiss")}
+              </button>
+              <Link
+                href="/setup/storage"
+                className="px-4 py-2 text-sm font-medium bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors"
+              >
+                {t("configureStorage")}
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* File list */}
       {files.length > 0 && (
