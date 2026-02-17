@@ -10,6 +10,7 @@ import { UserList } from "@/components/admin/user-list";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { SystemStatusModal } from "@/components/admin/system-status-modal";
+import { StorageWarningBanner } from "@/components/setup/storage-warning-banner";
 import { siteConfig } from "@/config/site.config";
 import { APP_VERSION } from "@/config/version";
 
@@ -397,6 +398,7 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
   const [activeTab, setActiveTab] = useState<"photos" | "upload" | "users">("photos");
   const [currentSiteName, setCurrentSiteName] = useState(siteConfig.name);
   const [showSystemStatus, setShowSystemStatus] = useState(false);
+  const [storageConfigured, setStorageConfigured] = useState(true);
   const router = useRouter();
 
 
@@ -414,6 +416,14 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
       }
     }
     loadSiteName();
+  }, []);
+
+  // Check storage configuration
+  useEffect(() => {
+    fetch("/api/config/storage")
+      .then((res) => res.json())
+      .then((data) => setStorageConfigured(data.configured))
+      .catch(() => setStorageConfigured(true)); // Assume configured on error
   }, []);
 
   // Persist tab state in URL hash
@@ -490,6 +500,9 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-white transition-colors">
+      {/* Storage warning banner */}
+      {!storageConfigured && <StorageWarningBanner />}
+
       {/* Floating Header - consistent width across all pages */}
       <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-6xl backdrop-blur-xl bg-white/80 dark:bg-neutral-900/80 border border-neutral-200/50 dark:border-neutral-800/50 rounded-2xl shadow-sm">
         <div className="px-5 py-3 flex items-center justify-between">
