@@ -57,6 +57,7 @@ export async function PATCH(
   if (parsed.data.title !== undefined) updates.title = parsed.data.title;
   if (parsed.data.description !== undefined) updates.description = parsed.data.description;
   if (parsed.data.sortOrder !== undefined) updates.sortOrder = parsed.data.sortOrder;
+  if (parsed.data.isVisible !== undefined) updates.isVisible = parsed.data.isVisible;
 
   // EXIF fields (from request body directly)
   const exifFields = [

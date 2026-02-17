@@ -77,9 +77,27 @@ export const photos = sqliteTable("photos", {
   fileSize: integer("file_size"),
   mimeType: text("mime_type"),
   sortOrder: integer("sort_order").notNull().default(0),
+  isVisible: integer("is_visible", { mode: "boolean" }).notNull().default(true),
   createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
 export type Photo = typeof photos.$inferSelect;
 export type NewPhoto = typeof photos.$inferInsert;
+
+// ─── Settings ─────────────────────────────────────────────
+
+export const settings = sqliteTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+export type Setting = typeof settings.$inferSelect;
+export type NewSetting = typeof settings.$inferInsert;
+
+// Setting keys
+export const SETTING_KEYS = {
+  SHOW_LOGIN_BUTTON: "show_login_button",
+  SITE_NAME: "site_name",
+} as const;

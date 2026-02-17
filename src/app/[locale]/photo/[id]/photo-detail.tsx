@@ -5,12 +5,12 @@ import type { Photo } from "@/lib/db/schema";
 import { LivePhotoPlayer } from "@/components/livephoto/live-photo-player";
 import { ExifPanel } from "@/components/gallery/exif-panel";
 import { displayConfig } from "@/config/display.config";
-import { siteConfig } from "@/config/site.config";
 import { useImageLoaded } from "@/hooks/use-image-loaded";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 interface PhotoDetailProps {
   photo: Photo;
+  siteName: string;
 }
 
 // Compact shooting info strip with icons
@@ -116,7 +116,7 @@ function ShootingInfoStrip({ photo }: { photo: Photo }) {
   );
 }
 
-export function PhotoDetail({ photo }: PhotoDetailProps) {
+export function PhotoDetail({ photo, siteName }: PhotoDetailProps) {
   const { loaded: imageLoaded, onLoad, onError, refCallback } = useImageLoaded(photo.imageUrl);
 
   // Check if there's detailed info to show below
@@ -139,7 +139,7 @@ export function PhotoDetail({ photo }: PhotoDetailProps) {
           </Link>
           <div className="flex items-center gap-4">
             <h1 className="text-sm font-medium tracking-wide text-neutral-600 dark:text-neutral-300">
-              {siteConfig.name}
+              {siteName}
             </h1>
             <ThemeToggle />
           </div>

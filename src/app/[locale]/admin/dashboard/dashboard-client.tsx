@@ -23,12 +23,94 @@ interface DashboardClientProps {
 function SettingsDropdown({
   recovering,
   onRecover,
+  isAdmin,
+  onSiteNameChange,
 }: {
   recovering: boolean;
   onRecover: () => void;
+  isAdmin: boolean;
+  onSiteNameChange?: (name: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [showLoginButton, setShowLoginButton] = useState(false);
+  const [siteName, setSiteName] = useState("");
+  const [editingSiteName, setEditingSiteName] = useState(false);
+  const [siteNameInput, setSiteNameInput] = useState("");
+  const [loadingSettings, setLoadingSettings] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const siteNameInputRef = useRef<HTMLInputElement>(null);
+
+  // Load settings
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const res = await fetch("/api/settings");
+        const data = await res.json();
+        setShowLoginButton(data.settings?.show_login_button === "true");
+        setSiteName(data.settings?.site_name || "Pilbum");
+      } catch (error) {
+        console.error("Failed to load settings:", error);
+      } finally {
+        setLoadingSettings(false);
+      }
+    }
+    loadSettings();
+  }, []);
+
+  // Focus input when editing
+  useEffect(() => {
+    if (editingSiteName && siteNameInputRef.current) {
+      siteNameInputRef.current.focus();
+      siteNameInputRef.current.select();
+    }
+  }, [editingSiteName]);
+
+  // Toggle login button setting
+  const toggleLoginButton = async () => {
+    const newValue = !showLoginButton;
+    setShowLoginButton(newValue);
+    try {
+      await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "show_login_button", value: String(newValue) }),
+      });
+    } catch (error) {
+      console.error("Failed to update setting:", error);
+      setShowLoginButton(!newValue); // Revert on error
+    }
+  };
+
+  // Save site name
+  const saveSiteName = async () => {
+    const trimmedName = siteNameInput.trim();
+    if (!trimmedName || trimmedName === siteName) {
+      setEditingSiteName(false);
+      return;
+    }
+
+    const oldName = siteName;
+    setSiteName(trimmedName);
+    setEditingSiteName(false);
+
+    try {
+      await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "site_name", value: trimmedName }),
+      });
+      onSiteNameChange?.(trimmedName);
+    } catch (error) {
+      console.error("Failed to update site name:", error);
+      setSiteName(oldName); // Revert on error
+    }
+  };
+
+  // Start editing site name
+  const startEditingSiteName = () => {
+    setSiteNameInput(siteName);
+    setEditingSiteName(true);
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -55,12 +137,89 @@ function SettingsDropdown({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-lg py-2 z-50">
+        <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-lg py-2 z-50">
+          {/* Site name - admin only */}
+          {isAdmin && (
+            <>
+              <div className="px-3 py-2">
+                <div className="text-xs text-neutral-400 dark:text-neutral-500 mb-1.5">站点名称</div>
+                {editingSiteName ? (
+                  <div className="flex items-center gap-1">
+                    <input
+                      ref={siteNameInputRef}
+                      type="text"
+                      value={siteNameInput}
+                      onChange={(e) => setSiteNameInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveSiteName();
+                        if (e.key === "Escape") setEditingSiteName(false);
+                      }}
+                      className="flex-1 px-2 py-1 text-sm bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                    <button
+                      onClick={saveSiteName}
+                      className="p-1 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded cursor-pointer"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setEditingSiteName(false)}
+                      className="p-1 text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded cursor-pointer"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={startEditingSiteName}
+                    disabled={loadingSettings}
+                    className="w-full flex items-center justify-between px-2 py-1.5 text-sm text-neutral-900 dark:text-white bg-neutral-100 dark:bg-neutral-800 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    <span>{siteName}</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-neutral-400">
+                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              <div className="border-t border-neutral-200 dark:border-neutral-800 my-1" />
+            </>
+          )}
+
           {/* Theme toggle */}
           <div className="px-3 py-2 flex items-center justify-between">
             <span className="text-sm text-neutral-600 dark:text-neutral-400">主题</span>
             <ThemeToggle />
           </div>
+
+          {/* Show login button toggle - admin only */}
+          {isAdmin && (
+            <>
+              <div className="border-t border-neutral-200 dark:border-neutral-800 my-1" />
+              <button
+                onClick={toggleLoginButton}
+                disabled={loadingSettings}
+                className="w-full px-3 py-2 text-left text-sm text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors disabled:opacity-50 cursor-pointer flex items-center justify-between"
+              >
+                <span className="flex items-center gap-2">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                    <polyline points="10 17 15 12 10 7" />
+                    <line x1="15" y1="12" x2="3" y2="12" />
+                  </svg>
+                  首页登录按钮
+                </span>
+                <span className={`w-8 h-5 rounded-full transition-colors relative ${showLoginButton ? "bg-blue-500" : "bg-neutral-300 dark:bg-neutral-600"}`}>
+                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${showLoginButton ? "left-3.5" : "left-0.5"}`} />
+                </span>
+              </button>
+            </>
+          )}
 
           <div className="border-t border-neutral-200 dark:border-neutral-800 my-1" />
 
@@ -110,7 +269,24 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
   const [loading, setLoading] = useState(true);
   const [recovering, setRecovering] = useState(false);
   const [activeTab, setActiveTab] = useState<"photos" | "upload" | "users">("photos");
+  const [currentSiteName, setCurrentSiteName] = useState(siteConfig.name);
   const router = useRouter();
+
+  // Load site name from settings
+  useEffect(() => {
+    async function loadSiteName() {
+      try {
+        const res = await fetch("/api/settings");
+        const data = await res.json();
+        if (data.settings?.site_name) {
+          setCurrentSiteName(data.settings.site_name);
+        }
+      } catch (error) {
+        console.error("Failed to load site name:", error);
+      }
+    }
+    loadSiteName();
+  }, []);
 
   // Persist tab state in URL hash
   useEffect(() => {
@@ -190,7 +366,7 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
       <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-6xl backdrop-blur-xl bg-white/80 dark:bg-neutral-900/80 border border-neutral-200/50 dark:border-neutral-800/50 rounded-2xl shadow-sm">
         <div className="px-5 py-3 flex items-center justify-between">
           <h1 className="text-lg font-medium tracking-wide text-neutral-900 dark:text-white">
-            {siteConfig.name} <span className="text-neutral-500 dark:text-neutral-400 font-normal">Admin</span>
+            {currentSiteName} <span className="text-neutral-500 dark:text-neutral-400 font-normal">Admin</span>
           </h1>
           <div className="flex items-center gap-2">
             <span className="text-xs text-neutral-500 dark:text-neutral-400 mr-2">
@@ -213,7 +389,12 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
             </a>
 
             {/* Settings dropdown */}
-            <SettingsDropdown recovering={recovering} onRecover={recoverPhotos} />
+            <SettingsDropdown
+              recovering={recovering}
+              onRecover={recoverPhotos}
+              isAdmin={currentUser.role === "admin"}
+              onSiteNameChange={setCurrentSiteName}
+            />
 
             {/* Logout */}
             <button

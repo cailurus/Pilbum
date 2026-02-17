@@ -1,31 +1,50 @@
 import { db } from "@/lib/db";
-import { photos } from "@/lib/db/schema";
-import { desc } from "drizzle-orm";
+import { photos, settings, SETTING_KEYS } from "@/lib/db/schema";
+import { desc, eq } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import { MasonryGallery } from "@/components/gallery/masonry-gallery";
 import type { Photo } from "@/lib/db/schema";
 import { siteConfig } from "@/config/site.config";
 import { ThemeToggle } from "@/components/theme-toggle";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   let photoList: Photo[] = [];
   let total = 0;
+  let showLoginButton = false;
+  let siteName = siteConfig.name;
 
+  // Fetch photos (only visible ones)
   try {
     const [result, countResult] = await Promise.all([
       db
         .select()
         .from(photos)
+        .where(eq(photos.isVisible, true))
         .orderBy(desc(photos.sortOrder), desc(photos.createdAt))
         .limit(20),
-      db.select({ count: sql<number>`count(*)` }).from(photos),
+      db.select({ count: sql<number>`count(*)` }).from(photos).where(eq(photos.isVisible, true)),
     ]);
     photoList = result;
     total = Number(countResult[0].count);
   } catch {
     // Database not initialized yet — show empty gallery
+  }
+
+  // Fetch settings separately (table might not exist yet)
+  try {
+    const allSettings = await db.select().from(settings);
+    for (const setting of allSettings) {
+      if (setting.key === SETTING_KEYS.SHOW_LOGIN_BUTTON) {
+        showLoginButton = setting.value === "true";
+      } else if (setting.key === SETTING_KEYS.SITE_NAME) {
+        siteName = setting.value;
+      }
+    }
+  } catch {
+    // Settings table not ready yet — use default
   }
 
   return (
@@ -34,13 +53,26 @@ export default async function HomePage() {
       <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-6xl backdrop-blur-xl bg-white/80 dark:bg-neutral-900/80 border border-neutral-200/50 dark:border-neutral-800/50 rounded-2xl shadow-sm">
         <div className="px-5 py-3 flex items-center justify-between">
           <h1 className="text-lg font-medium tracking-wide text-neutral-900 dark:text-white">
-            {siteConfig.name}
+            {siteName}
           </h1>
           <nav className="flex items-center gap-4">
             <span className="text-xs text-neutral-500 dark:text-neutral-400 tabular-nums">
               {total} 张照片
             </span>
             <ThemeToggle />
+            {showLoginButton && (
+              <Link
+                href="/admin/login"
+                className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                title="登录"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                  <polyline points="10 17 15 12 10 7" />
+                  <line x1="15" y1="12" x2="3" y2="12" />
+                </svg>
+              </Link>
+            )}
           </nav>
         </div>
       </header>

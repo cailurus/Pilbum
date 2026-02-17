@@ -5,6 +5,7 @@ export const photoUpdateSchema = z.object({
   title: z.string().max(200, '标题不能超过 200 个字符').optional(),
   description: z.string().max(2000, '描述不能超过 2000 个字符').optional(),
   sortOrder: z.number().int('排序必须是整数').optional(),
+  isVisible: z.boolean().optional(),
   // Camera info
   cameraMake: z.string().max(100).nullable().optional(),
   cameraModel: z.string().max(100).nullable().optional(),

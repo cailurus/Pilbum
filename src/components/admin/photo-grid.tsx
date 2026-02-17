@@ -3,6 +3,39 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import type { Photo } from "@/lib/db/schema";
 import { PhotoEditModal } from "./photo-edit-modal";
+import { useDragSelect } from "@/hooks/use-drag-select";
+
+// Selection box overlay component
+function SelectionBoxOverlay({
+  box,
+  isLongPressMode,
+}: {
+  box: { left: number; top: number; right: number; bottom: number } | null;
+  isLongPressMode: boolean;
+}) {
+  if (!box) return null;
+
+  return (
+    <>
+      {/* Selection box */}
+      <div
+        className="absolute pointer-events-none border-2 border-blue-500 bg-blue-500/20 z-20"
+        style={{
+          left: box.left,
+          top: box.top,
+          width: box.right - box.left,
+          height: box.bottom - box.top,
+        }}
+      />
+      {/* Long press mode indicator */}
+      {isLongPressMode && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium shadow-lg z-50">
+          拖动选择照片
+        </div>
+      )}
+    </>
+  );
+}
 
 // Grid item component with Live Photo support
 function GridPhotoItem({
@@ -12,6 +45,7 @@ function GridPhotoItem({
   onPreview,
   onEdit,
   onDelete,
+  onToggleVisibility,
 }: {
   photo: Photo;
   isSelected: boolean;
@@ -19,6 +53,7 @@ function GridPhotoItem({
   onPreview: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onToggleVisibility: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -41,9 +76,10 @@ function GridPhotoItem({
 
   return (
     <div
-      className={`relative aspect-square group cursor-pointer ${
-        isSelected ? "ring-2 ring-white ring-inset" : ""
-      }`}
+      data-photo-id={photo.id}
+      className={`relative aspect-square group cursor-pointer select-none ${
+        isSelected ? "ring-2 ring-blue-500 ring-inset" : ""
+      } ${!photo.isVisible ? "opacity-50" : ""}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={onPreview}
@@ -96,20 +132,51 @@ function GridPhotoItem({
         )}
       </button>
 
-      {/* Live Photo badge */}
-      {photo.isLivePhoto && (
-        <div className={`absolute top-1 right-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${
-          isPlaying ? "bg-red-500 text-white" : "bg-black/60 text-white"
-        }`}>
-          {isPlaying ? "● LIVE" : "LIVE"}
-        </div>
-      )}
+      {/* Badges row */}
+      <div className="absolute top-1 right-1 flex items-center gap-1">
+        {/* Hidden badge */}
+        {!photo.isVisible && (
+          <div className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-neutral-800/80 text-neutral-300">
+            隐藏
+          </div>
+        )}
+        {/* Live Photo badge */}
+        {photo.isLivePhoto && (
+          <div className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${
+            isPlaying ? "bg-red-500 text-white" : "bg-black/60 text-white"
+          }`}>
+            {isPlaying ? "● LIVE" : "LIVE"}
+          </div>
+        )}
+      </div>
 
       {/* Hover overlay */}
       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none" />
 
       {/* Action buttons */}
       <div className="absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity flex justify-end gap-1">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleVisibility();
+          }}
+          className={`p-1.5 rounded text-white transition-colors cursor-pointer ${
+            photo.isVisible ? "bg-black/70 hover:bg-orange-600" : "bg-orange-600 hover:bg-orange-500"
+          }`}
+          title={photo.isVisible ? "隐藏" : "显示"}
+        >
+          {photo.isVisible ? (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+              <line x1="1" y1="1" x2="23" y2="23" />
+            </svg>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          )}
+        </button>
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -149,6 +216,7 @@ function ListPhotoItem({
   onPreview,
   onEdit,
   onDelete,
+  onToggleVisibility,
 }: {
   photo: Photo;
   isSelected: boolean;
@@ -156,6 +224,7 @@ function ListPhotoItem({
   onPreview: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onToggleVisibility: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -184,15 +253,16 @@ function ListPhotoItem({
 
   return (
     <div
-      className={`rounded-lg transition-colors border ${
+      data-photo-id={photo.id}
+      className={`rounded-lg transition-colors border select-none ${
         isSelected
           ? "bg-blue-50 dark:bg-neutral-800/50 border-blue-200 dark:border-white/20"
           : "bg-neutral-50 dark:bg-neutral-900/50 border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700"
-      }`}
+      } ${!photo.isVisible ? "opacity-60" : ""}`}
     >
       <div className="flex gap-3 p-3">
         {/* Checkbox */}
-        <div className="flex items-center">
+        <div className="flex items-center" data-no-drag>
           <input
             type="checkbox"
             checked={isSelected}
@@ -244,6 +314,11 @@ function ListPhotoItem({
             <h3 className="text-sm font-medium text-neutral-900 dark:text-white truncate">
               {photo.title || "无标题"}
             </h3>
+            {!photo.isVisible && (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-neutral-200 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400">
+                隐藏
+              </span>
+            )}
           </div>
 
           {/* Info row - Single line compact with labels */}
@@ -273,6 +348,27 @@ function ListPhotoItem({
 
         {/* Actions */}
         <div className="flex items-center gap-1">
+          <button
+            onClick={onToggleVisibility}
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+              photo.isVisible
+                ? "hover:bg-orange-100 dark:hover:bg-orange-900/30 text-neutral-400 hover:text-orange-600 dark:hover:text-orange-400"
+                : "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50"
+            }`}
+            title={photo.isVisible ? "隐藏" : "显示"}
+          >
+            {photo.isVisible ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            )}
+          </button>
           <button
             onClick={onEdit}
             className="p-1.5 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-400 hover:text-neutral-700 dark:hover:text-white transition-colors cursor-pointer"
@@ -398,7 +494,8 @@ interface PhotoGridProps {
   onUpdate: () => void;
 }
 
-type FilterType = "all" | "upload-date" | "taken-date" | "live-photo" | "camera";
+type FilterType = "all" | "upload-date" | "taken-date" | "live-photo" | "camera" | "visibility" | "iso" | "aperture" | "focal-length";
+type SortType = "created-desc" | "created-asc" | "taken-desc" | "taken-asc" | "title-asc" | "title-desc";
 type ViewMode = "grid" | "list";
 type GridSize = "small" | "medium" | "large";
 
@@ -434,11 +531,48 @@ export function PhotoGrid({ photos, onUpdate }: PhotoGridProps) {
   const [batchDeleting, setBatchDeleting] = useState(false);
   const [filterType, setFilterType] = useState<FilterType>("all");
   const [filterValue, setFilterValue] = useState("");
+  const [sortType, setSortType] = useState<SortType>(() => getStoredValue("photoGridSortType", "created-desc"));
   const [viewMode, setViewMode] = useState<ViewMode>(() => getStoredValue("photoGridViewMode", "grid"));
   const [gridSize, setGridSize] = useState<GridSize>(() => getStoredValue("photoGridSize", "medium"));
   const [previewPhoto, setPreviewPhoto] = useState<Photo | null>(null);
+  const [dragSelectEnabled, setDragSelectEnabled] = useState(true);
 
-  // Persist view mode and grid size to localStorage
+  // Refs for drag selection
+  const gridContainerRef = useRef<HTMLDivElement>(null);
+  const listContainerRef = useRef<HTMLDivElement>(null);
+
+  // Drag selection handler
+  const handleDragSelectionChange = useCallback((newIds: Set<string>, isAdditive: boolean) => {
+    if (isAdditive) {
+      setSelectedIds(prev => {
+        const combined = new Set(prev);
+        newIds.forEach(id => combined.add(id));
+        return combined;
+      });
+    } else {
+      setSelectedIds(newIds);
+    }
+  }, []);
+
+  // Drag select for grid
+  const gridDragSelect = useDragSelect({
+    containerRef: gridContainerRef,
+    itemSelector: "[data-photo-id]",
+    getItemId: (el) => el.getAttribute("data-photo-id"),
+    onSelectionChange: handleDragSelectionChange,
+    enabled: dragSelectEnabled && viewMode === "grid",
+  });
+
+  // Drag select for list
+  const listDragSelect = useDragSelect({
+    containerRef: listContainerRef,
+    itemSelector: "[data-photo-id]",
+    getItemId: (el) => el.getAttribute("data-photo-id"),
+    onSelectionChange: handleDragSelectionChange,
+    enabled: dragSelectEnabled && viewMode === "list",
+  });
+
+  // Persist view mode, grid size, and sort type to localStorage
   useEffect(() => {
     localStorage.setItem("photoGridViewMode", JSON.stringify(viewMode));
   }, [viewMode]);
@@ -447,11 +581,34 @@ export function PhotoGrid({ photos, onUpdate }: PhotoGridProps) {
     localStorage.setItem("photoGridSize", JSON.stringify(gridSize));
   }, [gridSize]);
 
+  useEffect(() => {
+    localStorage.setItem("photoGridSortType", JSON.stringify(sortType));
+  }, [sortType]);
+
+  // Toggle photo visibility
+  const toggleVisibility = useCallback(async (id: string, currentVisible: boolean) => {
+    try {
+      const res = await fetch(`/api/photos/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isVisible: !currentVisible }),
+      });
+      if (res.ok) {
+        onUpdate();
+      }
+    } catch (error) {
+      console.error("Failed to toggle visibility:", error);
+    }
+  }, [onUpdate]);
+
   // Get unique filter options
   const filterOptions = useMemo(() => {
     const uploadDates = new Map<string, number>();
     const takenDates = new Map<string, number>();
     const cameras = new Map<string, number>();
+    const isoValues = new Map<number, number>();
+    const apertureValues = new Map<number, number>();
+    const focalLengths = new Map<number, number>();
 
     photos.forEach((photo) => {
       const uploadDate = new Date(photo.createdAt).toLocaleDateString("zh-CN");
@@ -464,36 +621,91 @@ export function PhotoGrid({ photos, onUpdate }: PhotoGridProps) {
       if (photo.cameraModel) {
         cameras.set(photo.cameraModel, (cameras.get(photo.cameraModel) || 0) + 1);
       }
+      if (photo.iso) {
+        isoValues.set(photo.iso, (isoValues.get(photo.iso) || 0) + 1);
+      }
+      if (photo.aperture) {
+        const rounded = Math.round(photo.aperture * 10) / 10;
+        apertureValues.set(rounded, (apertureValues.get(rounded) || 0) + 1);
+      }
+      if (photo.focalLength) {
+        const rounded = Math.round(photo.focalLength);
+        focalLengths.set(rounded, (focalLengths.get(rounded) || 0) + 1);
+      }
     });
 
     return {
       uploadDates: Array.from(uploadDates.entries()).sort((a, b) => b[0].localeCompare(a[0])),
       takenDates: Array.from(takenDates.entries()).sort((a, b) => b[0].localeCompare(a[0])),
       cameras: Array.from(cameras.entries()).sort((a, b) => a[0].localeCompare(b[0])),
+      isoValues: Array.from(isoValues.entries()).sort((a, b) => a[0] - b[0]),
+      apertureValues: Array.from(apertureValues.entries()).sort((a, b) => a[0] - b[0]),
+      focalLengths: Array.from(focalLengths.entries()).sort((a, b) => a[0] - b[0]),
       livePhotoCount: photos.filter(p => p.isLivePhoto).length,
       staticPhotoCount: photos.filter(p => !p.isLivePhoto).length,
+      visibleCount: photos.filter(p => p.isVisible !== false).length,
+      hiddenCount: photos.filter(p => p.isVisible === false).length,
     };
   }, [photos]);
 
-  // Filter photos
+  // Filter and sort photos
   const filteredPhotos = useMemo(() => {
-    if (filterType === "all" || !filterValue) return photos;
+    let result = photos;
 
-    return photos.filter((photo) => {
-      switch (filterType) {
-        case "upload-date":
-          return new Date(photo.createdAt).toLocaleDateString("zh-CN") === filterValue;
-        case "taken-date":
-          return photo.takenAt && new Date(photo.takenAt).toLocaleDateString("zh-CN") === filterValue;
-        case "live-photo":
-          return filterValue === "live" ? photo.isLivePhoto : !photo.isLivePhoto;
-        case "camera":
-          return photo.cameraModel === filterValue;
+    // Apply filter
+    if (filterType !== "all" && filterValue) {
+      result = result.filter((photo) => {
+        switch (filterType) {
+          case "upload-date":
+            return new Date(photo.createdAt).toLocaleDateString("zh-CN") === filterValue;
+          case "taken-date":
+            return photo.takenAt && new Date(photo.takenAt).toLocaleDateString("zh-CN") === filterValue;
+          case "live-photo":
+            return filterValue === "live" ? photo.isLivePhoto : !photo.isLivePhoto;
+          case "camera":
+            return photo.cameraModel === filterValue;
+          case "visibility":
+            return filterValue === "visible" ? photo.isVisible !== false : photo.isVisible === false;
+          case "iso":
+            return photo.iso === parseInt(filterValue);
+          case "aperture":
+            return photo.aperture && Math.round(photo.aperture * 10) / 10 === parseFloat(filterValue);
+          case "focal-length":
+            return photo.focalLength && Math.round(photo.focalLength) === parseInt(filterValue);
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Apply sort
+    result = [...result].sort((a, b) => {
+      switch (sortType) {
+        case "created-desc":
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case "created-asc":
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case "taken-desc":
+          if (!a.takenAt && !b.takenAt) return 0;
+          if (!a.takenAt) return 1;
+          if (!b.takenAt) return -1;
+          return new Date(b.takenAt).getTime() - new Date(a.takenAt).getTime();
+        case "taken-asc":
+          if (!a.takenAt && !b.takenAt) return 0;
+          if (!a.takenAt) return 1;
+          if (!b.takenAt) return -1;
+          return new Date(a.takenAt).getTime() - new Date(b.takenAt).getTime();
+        case "title-asc":
+          return (a.title || "").localeCompare(b.title || "");
+        case "title-desc":
+          return (b.title || "").localeCompare(a.title || "");
         default:
-          return true;
+          return 0;
       }
     });
-  }, [photos, filterType, filterValue]);
+
+    return result;
+  }, [photos, filterType, filterValue, sortType]);
 
   // Selection handlers
   const toggleSelect = useCallback((id: string, e?: React.MouseEvent) => {
@@ -626,11 +838,27 @@ export function PhotoGrid({ photos, onUpdate }: PhotoGridProps) {
             className="px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white text-sm focus:outline-none"
           >
             <option value="all">全部 ({photos.length})</option>
+            <option value="visibility">按可见性</option>
             <option value="upload-date">按上传日期</option>
             <option value="taken-date">按拍摄日期</option>
             <option value="live-photo">按类型</option>
             <option value="camera">按相机</option>
+            <option value="iso">按 ISO</option>
+            <option value="aperture">按光圈</option>
+            <option value="focal-length">按焦距</option>
           </select>
+
+          {filterType === "visibility" && (
+            <select
+              value={filterValue}
+              onChange={(e) => setFilterValue(e.target.value)}
+              className="px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white text-sm focus:outline-none"
+            >
+              <option value="">选择状态</option>
+              <option value="visible">显示中 ({filterOptions.visibleCount})</option>
+              <option value="hidden">已隐藏 ({filterOptions.hiddenCount})</option>
+            </select>
+          )}
 
           {filterType === "upload-date" && (
             <select
@@ -683,6 +911,45 @@ export function PhotoGrid({ photos, onUpdate }: PhotoGridProps) {
             </select>
           )}
 
+          {filterType === "iso" && (
+            <select
+              value={filterValue}
+              onChange={(e) => setFilterValue(e.target.value)}
+              className="px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white text-sm focus:outline-none"
+            >
+              <option value="">选择 ISO</option>
+              {filterOptions.isoValues.map(([iso, count]) => (
+                <option key={iso} value={iso}>ISO {iso} ({count})</option>
+              ))}
+            </select>
+          )}
+
+          {filterType === "aperture" && (
+            <select
+              value={filterValue}
+              onChange={(e) => setFilterValue(e.target.value)}
+              className="px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white text-sm focus:outline-none"
+            >
+              <option value="">选择光圈</option>
+              {filterOptions.apertureValues.map(([aperture, count]) => (
+                <option key={aperture} value={aperture}>f/{aperture} ({count})</option>
+              ))}
+            </select>
+          )}
+
+          {filterType === "focal-length" && (
+            <select
+              value={filterValue}
+              onChange={(e) => setFilterValue(e.target.value)}
+              className="px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white text-sm focus:outline-none"
+            >
+              <option value="">选择焦距</option>
+              {filterOptions.focalLengths.map(([fl, count]) => (
+                <option key={fl} value={fl}>{fl}mm ({count})</option>
+              ))}
+            </select>
+          )}
+
           {filterValue && (
             <button
               onClick={() => {
@@ -694,6 +961,20 @@ export function PhotoGrid({ photos, onUpdate }: PhotoGridProps) {
               清除
             </button>
           )}
+
+          {/* Sort */}
+          <select
+            value={sortType}
+            onChange={(e) => setSortType(e.target.value as SortType)}
+            className="px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white text-sm focus:outline-none"
+          >
+            <option value="created-desc">上传时间 ↓</option>
+            <option value="created-asc">上传时间 ↑</option>
+            <option value="taken-desc">拍摄时间 ↓</option>
+            <option value="taken-asc">拍摄时间 ↑</option>
+            <option value="title-asc">标题 A-Z</option>
+            <option value="title-desc">标题 Z-A</option>
+          </select>
 
           {/* Grid size control (only in grid mode) */}
           {viewMode === "grid" && (
@@ -765,33 +1046,51 @@ export function PhotoGrid({ photos, onUpdate }: PhotoGridProps) {
 
       {/* Grid View */}
       {viewMode === "grid" ? (
-        <div className={`grid ${gridSizeConfig[gridSize]} gap-1`}>
+        <div
+          ref={gridContainerRef}
+          className={`relative grid ${gridSizeConfig[gridSize]} gap-1`}
+          {...gridDragSelect.handlers}
+        >
           {filteredPhotos.map((photo) => (
             <GridPhotoItem
               key={photo.id}
               photo={photo}
               isSelected={selectedIds.has(photo.id)}
               onSelect={(e) => toggleSelect(photo.id, e)}
-              onPreview={() => setPreviewPhoto(photo)}
+              onPreview={() => !gridDragSelect.isDragging && setPreviewPhoto(photo)}
               onEdit={() => setEditingPhoto(photo)}
               onDelete={() => handleDelete(photo.id)}
+              onToggleVisibility={() => toggleVisibility(photo.id, photo.isVisible !== false)}
             />
           ))}
+          <SelectionBoxOverlay
+            box={gridDragSelect.selectionBox}
+            isLongPressMode={gridDragSelect.isLongPressMode}
+          />
         </div>
       ) : (
         /* List View - Compact with Live Photo support */
-        <div className="space-y-2">
+        <div
+          ref={listContainerRef}
+          className="relative space-y-2"
+          {...listDragSelect.handlers}
+        >
           {filteredPhotos.map((photo) => (
             <ListPhotoItem
               key={photo.id}
               photo={photo}
               isSelected={selectedIds.has(photo.id)}
               onSelect={() => toggleSelect(photo.id)}
-              onPreview={() => setPreviewPhoto(photo)}
+              onPreview={() => !listDragSelect.isDragging && setPreviewPhoto(photo)}
               onEdit={() => setEditingPhoto(photo)}
               onDelete={() => handleDelete(photo.id)}
+              onToggleVisibility={() => toggleVisibility(photo.id, photo.isVisible !== false)}
             />
           ))}
+          <SelectionBoxOverlay
+            box={listDragSelect.selectionBox}
+            isLongPressMode={listDragSelect.isLongPressMode}
+          />
         </div>
       )}
 
