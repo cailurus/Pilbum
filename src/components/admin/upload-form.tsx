@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import { isHeicFile } from "@/lib/heic";
+import { formatFileSize } from "@/lib/format";
 
 interface UploadFormProps {
   onUploadComplete: () => void;
@@ -16,22 +18,6 @@ interface UploadFile {
   progress: number; // 0-100
   error?: string;
   videoFile?: File;
-}
-
-function isHeicFile(file: File): boolean {
-  const name = file.name.toLowerCase();
-  return (
-    name.endsWith(".heic") ||
-    name.endsWith(".heif") ||
-    file.type === "image/heic" ||
-    file.type === "image/heif"
-  );
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export function UploadForm({ onUploadComplete }: UploadFormProps) {

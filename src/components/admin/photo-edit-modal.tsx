@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import type { Photo } from "@/lib/db/schema";
 
 interface PhotoEditModalProps {
@@ -12,6 +13,7 @@ interface PhotoEditModalProps {
 type TabType = "content" | "exif" | "location";
 
 export function PhotoEditModal({ photo, onClose, onSave }: PhotoEditModalProps) {
+  const t = useTranslations();
   const [activeTab, setActiveTab] = useState<TabType>("content");
   const [saving, setSaving] = useState(false);
 
@@ -96,11 +98,11 @@ export function PhotoEditModal({ photo, onClose, onSave }: PhotoEditModalProps) 
         onClose();
       } else {
         const data = await res.json();
-        alert(data.error || "保存失败");
+        alert(data.error || t("editPhoto.saveFailed"));
       }
     } catch (error) {
       console.error("Save failed:", error);
-      alert("保存失败，请重试");
+      alert(t("editPhoto.saveFailedRetry"));
     } finally {
       setSaving(false);
     }
@@ -118,7 +120,7 @@ export function PhotoEditModal({ photo, onClose, onSave }: PhotoEditModalProps) 
       <div className="relative bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 w-full max-w-3xl mx-4 max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-neutral-800">
-          <h2 className="text-lg font-medium text-neutral-900 dark:text-white">编辑照片信息</h2>
+          <h2 className="text-lg font-medium text-neutral-900 dark:text-white">{t("editPhoto.title")}</h2>
           <button
             onClick={onClose}
             className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
@@ -140,7 +142,7 @@ export function PhotoEditModal({ photo, onClose, onSave }: PhotoEditModalProps) 
                 : "border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
             }`}
           >
-            内容
+            {t("editPhoto.content")}
           </button>
           <button
             onClick={() => setActiveTab("exif")}
@@ -150,7 +152,7 @@ export function PhotoEditModal({ photo, onClose, onSave }: PhotoEditModalProps) 
                 : "border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
             }`}
           >
-            拍摄参数
+            {t("editPhoto.shootingParams")}
           </button>
           <button
             onClick={() => setActiveTab("location")}
@@ -160,7 +162,7 @@ export function PhotoEditModal({ photo, onClose, onSave }: PhotoEditModalProps) 
                 : "border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
             }`}
           >
-            时间与位置
+            {t("editPhoto.timeLocation")}
           </button>
         </div>
 
@@ -190,24 +192,24 @@ export function PhotoEditModal({ photo, onClose, onSave }: PhotoEditModalProps) 
               {activeTab === "content" && (
                 <>
                   <div>
-                    <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">标题</label>
+                    <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">{t("photo.title")}</label>
                     <input
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      placeholder="为照片添加一个标题..."
+                      placeholder={t("editPhoto.titlePlaceholder")}
                       className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white text-sm focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-500 transition-colors"
                     />
                   </div>
                   <div>
                     <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">
-                      描述
-                      <span className="ml-2 text-xs text-neutral-400 dark:text-neutral-500">(将在前端照片详情页展示)</span>
+                      {t("photo.description")}
+                      <span className="ml-2 text-xs text-neutral-400 dark:text-neutral-500">{t("editPhoto.descriptionHint")}</span>
                     </label>
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      placeholder="为照片添加描述或文案..."
+                      placeholder={t("editPhoto.descriptionPlaceholder")}
                       rows={6}
                       className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white text-sm focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-500 transition-colors resize-none"
                     />
@@ -220,49 +222,49 @@ export function PhotoEditModal({ photo, onClose, onSave }: PhotoEditModalProps) 
                 <>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">相机品牌</label>
+                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">{t("editPhoto.cameraMake")}</label>
                       <input
                         type="text"
                         value={cameraMake}
                         onChange={(e) => setCameraMake(e.target.value)}
-                        placeholder="如: Apple, Canon, Sony"
+                        placeholder="Apple, Canon, Sony"
                         className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white text-sm focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">相机型号</label>
+                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">{t("editPhoto.cameraModel")}</label>
                       <input
                         type="text"
                         value={cameraModel}
                         onChange={(e) => setCameraModel(e.target.value)}
-                        placeholder="如: iPhone 15 Pro, EOS R5"
+                        placeholder="iPhone 15 Pro, EOS R5"
                         className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white text-sm focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">镜头品牌</label>
+                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">{t("editPhoto.lensMake")}</label>
                       <input
                         type="text"
                         value={lensMake}
                         onChange={(e) => setLensMake(e.target.value)}
-                        placeholder="如: Apple, Canon, Sigma"
+                        placeholder="Apple, Canon, Sigma"
                         className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white text-sm focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">镜头型号</label>
+                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">{t("editPhoto.lensModel")}</label>
                       <input
                         type="text"
                         value={lensModel}
                         onChange={(e) => setLensModel(e.target.value)}
-                        placeholder="如: RF 24-70mm F2.8 L IS USM"
+                        placeholder="RF 24-70mm F2.8 L IS USM"
                         className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white text-sm focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-500"
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-4 gap-4">
                     <div>
-                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">焦距 (mm)</label>
+                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">{t("photo.focalLength")} (mm)</label>
                       <input
                         type="number"
                         value={focalLength}
@@ -272,7 +274,7 @@ export function PhotoEditModal({ photo, onClose, onSave }: PhotoEditModalProps) 
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">光圈 (f/)</label>
+                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">{t("photo.aperture")} (f/)</label>
                       <input
                         type="number"
                         step="0.1"
@@ -283,7 +285,7 @@ export function PhotoEditModal({ photo, onClose, onSave }: PhotoEditModalProps) 
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">快门速度</label>
+                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">{t("photo.shutterSpeed")}</label>
                       <input
                         type="text"
                         value={shutterSpeed}
@@ -293,7 +295,7 @@ export function PhotoEditModal({ photo, onClose, onSave }: PhotoEditModalProps) 
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">ISO</label>
+                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">{t("photo.iso")}</label>
                       <input
                         type="number"
                         value={iso}
@@ -310,7 +312,7 @@ export function PhotoEditModal({ photo, onClose, onSave }: PhotoEditModalProps) 
               {activeTab === "location" && (
                 <>
                   <div>
-                    <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">拍摄时间</label>
+                    <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">{t("photo.takenAt")}</label>
                     <input
                       type="datetime-local"
                       value={takenAt}
@@ -320,7 +322,7 @@ export function PhotoEditModal({ photo, onClose, onSave }: PhotoEditModalProps) 
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">纬度</label>
+                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">{t("photo.latitude")}</label>
                       <input
                         type="number"
                         step="0.000001"
@@ -331,7 +333,7 @@ export function PhotoEditModal({ photo, onClose, onSave }: PhotoEditModalProps) 
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">经度</label>
+                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">{t("photo.longitude")}</label>
                       <input
                         type="number"
                         step="0.000001"
@@ -342,7 +344,7 @@ export function PhotoEditModal({ photo, onClose, onSave }: PhotoEditModalProps) 
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">海拔 (m)</label>
+                      <label className="block text-sm text-neutral-500 dark:text-neutral-400 mb-1">{t("photo.altitude")} ({t("photo.meters")})</label>
                       <input
                         type="number"
                         step="0.1"
@@ -354,7 +356,7 @@ export function PhotoEditModal({ photo, onClose, onSave }: PhotoEditModalProps) 
                     </div>
                   </div>
                   <p className="text-xs text-neutral-400 dark:text-neutral-500">
-                    提示：纬度范围 -90 到 90，经度范围 -180 到 180。正数表示北纬和东经。
+                    {t("editPhoto.locationHint")}
                   </p>
                 </>
               )}
@@ -368,14 +370,14 @@ export function PhotoEditModal({ photo, onClose, onSave }: PhotoEditModalProps) 
             onClick={onClose}
             className="px-4 py-2 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors"
           >
-            取消
+            {t("common.cancel")}
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
             className="px-6 py-2 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-lg text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-50"
           >
-            {saving ? "保存中..." : "保存"}
+            {saving ? t("editPhoto.saving") : t("common.save")}
           </button>
         </div>
       </div>

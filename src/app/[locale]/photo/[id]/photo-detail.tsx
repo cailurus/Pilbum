@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { Photo } from "@/lib/db/schema";
 import { LivePhotoPlayer } from "@/components/livephoto/live-photo-player";
@@ -7,6 +8,7 @@ import { ExifPanel } from "@/components/gallery/exif-panel";
 import { displayConfig } from "@/config/display.config";
 import { useImageLoaded } from "@/hooks/use-image-loaded";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useTranslations, useLocale } from "next-intl";
 
 interface PhotoDetailProps {
   photo: Photo;
@@ -14,7 +16,7 @@ interface PhotoDetailProps {
 }
 
 // Compact shooting info strip with icons
-function ShootingInfoStrip({ photo }: { photo: Photo }) {
+function ShootingInfoStrip({ photo, locale }: { photo: Photo; locale: string }) {
   const items: { icon: React.ReactNode; value: string }[] = [];
 
   // Camera
@@ -52,6 +54,9 @@ function ShootingInfoStrip({ photo }: { photo: Photo }) {
           <line x1="14.31" y1="8" x2="20.05" y2="17.94" />
           <line x1="9.69" y1="8" x2="21.17" y2="8" />
           <line x1="7.38" y1="12" x2="13.12" y2="2.06" />
+          <line x1="9.69" y1="16" x2="3.95" y2="6.06" />
+          <line x1="14.31" y1="16" x2="2.83" y2="16" />
+          <line x1="16.62" y1="12" x2="10.88" y2="21.94" />
         </svg>
       ),
       value: `f/${photo.aperture.toFixed(1).replace(/\.0$/, '')}`,
@@ -94,7 +99,7 @@ function ShootingInfoStrip({ photo }: { photo: Photo }) {
           <path d="M8 2v4M16 2v4" />
         </svg>
       ),
-      value: new Date(photo.takenAt).toLocaleDateString("zh-CN", {
+      value: new Date(photo.takenAt).toLocaleDateString(locale, {
         year: "numeric",
         month: "short",
         day: "numeric",
@@ -118,6 +123,33 @@ function ShootingInfoStrip({ photo }: { photo: Photo }) {
 
 export function PhotoDetail({ photo, siteName }: PhotoDetailProps) {
   const { loaded: imageLoaded, onLoad, onError, refCallback } = useImageLoaded(photo.imageUrl);
+  const t = useTranslations();
+  const locale = useLocale();
+  const [muted, setMuted] = useState(true);
+  const isLivePhoto = photo.isLivePhoto && photo.livePhotoVideoUrl;
+
+  // Update document title
+  useEffect(() => {
+    document.title = photo.title ? `${photo.title} - ${siteName}` : siteName;
+  }, [photo.title, siteName]);
+
+  // Prepare translations for ExifPanel
+  const exifTranslations = {
+    camera: t("photo.camera"),
+    lens: t("photo.lens"),
+    shootingParams: t("photo.shootingParams"),
+    takenAt: t("photo.takenAt"),
+    location: t("photo.location"),
+    shootingInfo: t("photo.shootingInfo"),
+    fileInfo: t("photo.fileInfo"),
+    dimensions: t("photo.dimensions"),
+    fileSize: t("photo.fileSize"),
+    uploadedAt: t("photo.uploadedAt"),
+    type: t("photo.type"),
+    originalFilename: t("photo.originalFilename"),
+    altitude: t("photo.altitude"),
+    meters: t("photo.meters"),
+  };
 
   // Check if there's detailed info to show below
   const hasDetailedInfo = (photo.latitude && photo.longitude) ||
@@ -135,7 +167,7 @@ export function PhotoDetail({ photo, siteName }: PhotoDetailProps) {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="15 18 9 12 15 6" />
             </svg>
-            <span className="hidden sm:inline">返回</span>
+            <span className="hidden sm:inline">{t("common.back")}</span>
           </Link>
           <div className="flex items-center gap-4">
             <h1 className="text-sm font-medium tracking-wide text-neutral-600 dark:text-neutral-300">
@@ -159,10 +191,10 @@ export function PhotoDetail({ photo, siteName }: PhotoDetailProps) {
 
             {/* Photo - centered with max constraints */}
             <div className="w-full flex items-center justify-center">
-              {photo.isLivePhoto && photo.livePhotoVideoUrl ? (
+              {isLivePhoto ? (
                 <LivePhotoPlayer
                   imageUrl={photo.imageUrl}
-                  videoUrl={photo.livePhotoVideoUrl}
+                  videoUrl={photo.livePhotoVideoUrl!}
                   alt={photo.title || "Photo"}
                   width={photo.width}
                   height={photo.height}
@@ -171,6 +203,9 @@ export function PhotoDetail({ photo, siteName }: PhotoDetailProps) {
                   className="max-w-full rounded-xl shadow-2xl shadow-neutral-900/10 dark:shadow-black/30"
                   maxHeight="calc(100vh - 16rem)"
                   objectFit="contain"
+                  muted={muted}
+                  onMutedChange={setMuted}
+                  showSoundToggle={true}
                 />
               ) : (
                 <div
@@ -209,7 +244,7 @@ export function PhotoDetail({ photo, siteName }: PhotoDetailProps) {
 
             {/* Compact shooting info strip */}
             <div className="mt-6">
-              <ShootingInfoStrip photo={photo} />
+              <ShootingInfoStrip photo={photo} locale={locale} />
             </div>
           </div>
         </section>
@@ -218,7 +253,7 @@ export function PhotoDetail({ photo, siteName }: PhotoDetailProps) {
         {hasDetailedInfo && (
           <section className="bg-white dark:bg-neutral-900/50 py-12 mt-8 border-t border-neutral-200 dark:border-neutral-800">
             <div className="w-[calc(100%-2rem)] max-w-6xl mx-auto">
-              <ExifPanel photo={photo} />
+              <ExifPanel photo={photo} translations={exifTranslations} locale={locale} />
             </div>
           </section>
         )}

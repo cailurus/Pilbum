@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { locales, type Locale } from "@/i18n/config";
 
 const languageLabels: Record<Locale, { name: string; flag: string }> = {
@@ -14,9 +15,7 @@ export function LanguageToggle() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
-
-  // Extract current locale from pathname
-  const currentLocale = (pathname.split("/")[1] || "zh") as Locale;
+  const currentLocale = useLocale() as Locale;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -30,10 +29,19 @@ export function LanguageToggle() {
   }, []);
 
   const switchLocale = (newLocale: Locale) => {
-    // Replace the locale in the pathname
-    const segments = pathname.split("/");
-    segments[1] = newLocale;
-    const newPath = segments.join("/") || `/${newLocale}`;
+    if (newLocale === currentLocale) {
+      setOpen(false);
+      return;
+    }
+
+    // Remove current locale from pathname if present
+    const segments = pathname.split("/").filter(Boolean);
+    const pathWithoutLocale = locales.includes(segments[0] as Locale)
+      ? "/" + segments.slice(1).join("/")
+      : pathname;
+
+    // Build new path with new locale
+    const newPath = `/${newLocale}${pathWithoutLocale || ""}`;
     router.push(newPath);
     setOpen(false);
   };

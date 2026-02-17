@@ -3,9 +3,29 @@
 import type { Photo } from "@/lib/db/schema";
 import { MapDisplay } from "./map-display";
 import { displayConfig } from "@/config/display.config";
+import { formatFileSize } from "@/lib/format";
+
+interface ExifTranslations {
+  camera: string;
+  lens: string;
+  shootingParams: string;
+  takenAt: string;
+  location: string;
+  shootingInfo: string;
+  fileInfo: string;
+  dimensions: string;
+  fileSize: string;
+  uploadedAt: string;
+  type: string;
+  originalFilename: string;
+  altitude: string;
+  meters: string;
+}
 
 interface ExifPanelProps {
   photo: Photo;
+  translations: ExifTranslations;
+  locale: string;
 }
 
 function ExifItem({
@@ -130,13 +150,7 @@ function MountainIcon() {
   );
 }
 
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-export function ExifPanel({ photo }: ExifPanelProps) {
+export function ExifPanel({ photo, translations: t, locale }: ExifPanelProps) {
   const { exif, fileInfo } = displayConfig;
 
   // Check if any EXIF info should be shown
@@ -168,14 +182,14 @@ export function ExifPanel({ photo }: ExifPanelProps) {
   const exifSection = hasExif && (
     <>
       <h3 className="text-xs text-neutral-500 dark:text-neutral-500 uppercase tracking-wider mb-2">
-        拍摄信息
+        {t.shootingInfo}
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 divide-y divide-neutral-200 dark:divide-neutral-800/50 sm:divide-y-0">
         {/* Camera */}
         {exif.camera && photo.cameraModel && (
           <ExifItem
             icon={<CameraIcon />}
-            label="相机"
+            label={t.camera}
             value={
               photo.cameraMake
                 ? `${photo.cameraMake} ${photo.cameraModel}`
@@ -188,7 +202,7 @@ export function ExifPanel({ photo }: ExifPanelProps) {
         {exif.lens && photo.lensModel && (
           <ExifItem
             icon={<LensIcon />}
-            label="镜头"
+            label={t.lens}
             value={photo.lensModel}
           />
         )}
@@ -197,7 +211,7 @@ export function ExifPanel({ photo }: ExifPanelProps) {
         {exif.shootingParams && paramsStr && (
           <ExifItem
             icon={<ApertureIcon />}
-            label="拍摄参数"
+            label={t.shootingParams}
             value={paramsStr}
           />
         )}
@@ -206,8 +220,8 @@ export function ExifPanel({ photo }: ExifPanelProps) {
         {exif.takenDate && photo.takenAt && (
           <ExifItem
             icon={<CalendarIcon />}
-            label="拍摄时间"
-            value={new Date(photo.takenAt).toLocaleString("zh-CN", {
+            label={t.takenAt}
+            value={new Date(photo.takenAt).toLocaleString(locale, {
               year: "numeric",
               month: "long",
               day: "numeric",
@@ -224,7 +238,7 @@ export function ExifPanel({ photo }: ExifPanelProps) {
           <div className="flex items-center gap-2 mb-3 text-neutral-400 dark:text-neutral-500">
             <MapPinIcon />
             <span className="text-xs text-neutral-500 dark:text-neutral-500 uppercase tracking-wider">
-              拍摄地点
+              {t.location}
             </span>
           </div>
           <MapDisplay lat={photo.latitude} lng={photo.longitude} />
@@ -237,14 +251,14 @@ export function ExifPanel({ photo }: ExifPanelProps) {
   const fileInfoSection = hasFileInfo && (
     <div className={hasExif ? "border-t border-neutral-200 dark:border-neutral-800 pt-6 mt-6" : ""}>
       <h3 className="text-xs text-neutral-500 dark:text-neutral-500 uppercase tracking-wider mb-2">
-        文件信息
+        {t.fileInfo}
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 divide-y divide-neutral-200 dark:divide-neutral-800/50 sm:divide-y-0">
         {/* Dimensions */}
         {fileInfo.dimensions && photo.width && photo.height && (
           <ExifItem
             icon={<ImageIcon />}
-            label="尺寸"
+            label={t.dimensions}
             value={`${photo.width} × ${photo.height}`}
           />
         )}
@@ -253,7 +267,7 @@ export function ExifPanel({ photo }: ExifPanelProps) {
         {fileInfo.fileSize && photo.fileSize && (
           <ExifItem
             icon={<FileIcon />}
-            label="文件大小"
+            label={t.fileSize}
             value={formatFileSize(photo.fileSize)}
           />
         )}
@@ -262,8 +276,8 @@ export function ExifPanel({ photo }: ExifPanelProps) {
         {fileInfo.uploadDate && (
           <ExifItem
             icon={<CloudUpIcon />}
-            label="上传时间"
-            value={new Date(photo.createdAt).toLocaleString("zh-CN", {
+            label={t.uploadedAt}
+            value={new Date(photo.createdAt).toLocaleString(locale, {
               year: "numeric",
               month: "long",
               day: "numeric",
@@ -277,7 +291,7 @@ export function ExifPanel({ photo }: ExifPanelProps) {
         {fileInfo.livePhotoIndicator && photo.isLivePhoto && (
           <ExifItem
             icon={<LivePhotoIcon />}
-            label="类型"
+            label={t.type}
             value="Live Photo"
           />
         )}
@@ -286,7 +300,7 @@ export function ExifPanel({ photo }: ExifPanelProps) {
         {fileInfo.originalFilename && photo.originalFilename && (
           <ExifItem
             icon={<FileIcon />}
-            label="原始文件名"
+            label={t.originalFilename}
             value={photo.originalFilename}
           />
         )}
@@ -295,8 +309,8 @@ export function ExifPanel({ photo }: ExifPanelProps) {
         {fileInfo.altitude && photo.altitude && (
           <ExifItem
             icon={<MountainIcon />}
-            label="海拔"
-            value={`${photo.altitude.toFixed(1)} 米`}
+            label={t.altitude}
+            value={`${photo.altitude.toFixed(1)} ${t.meters}`}
           />
         )}
       </div>

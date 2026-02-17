@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import type { Photo } from "@/lib/db/schema";
 import { UploadForm } from "@/components/admin/upload-form";
 import { PhotoGrid } from "@/components/admin/photo-grid";
@@ -46,6 +47,7 @@ function SettingsDropdown({
   onSiteNameChange?: (name: string) => void;
   onOpenSystemStatus: () => void;
 }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [showLoginButton, setShowLoginButton] = useState(false);
   const [siteName, setSiteName] = useState("");
@@ -166,7 +168,7 @@ function SettingsDropdown({
       <button
         onClick={() => setOpen(!open)}
         className="relative w-8 h-8 rounded-full flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 transition-colors cursor-pointer"
-        title="设置"
+        title={t("common.settings")}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
@@ -184,7 +186,7 @@ function SettingsDropdown({
           {isAdmin && (
             <>
               <div className="px-3 py-2">
-                <div className="text-xs text-neutral-400 dark:text-neutral-500 mb-1.5">站点名称</div>
+                <div className="text-xs text-neutral-400 dark:text-neutral-500 mb-1.5">{t("admin.siteName")}</div>
                 {editingSiteName ? (
                   <div className="flex items-center gap-1">
                     <input
@@ -236,7 +238,6 @@ function SettingsDropdown({
           {/* Show login button toggle - admin only */}
           {isAdmin && (
             <>
-              <div className="border-t border-neutral-200 dark:border-neutral-800 my-1" />
               <button
                 onClick={toggleLoginButton}
                 disabled={loadingSettings}
@@ -248,7 +249,7 @@ function SettingsDropdown({
                     <polyline points="10 17 15 12 10 7" />
                     <line x1="15" y1="12" x2="3" y2="12" />
                   </svg>
-                  首页登录按钮
+                  {t("admin.showLoginButton")}
                 </span>
                 <span className={`w-8 h-5 rounded-full transition-colors relative ${showLoginButton ? "bg-blue-500" : "bg-neutral-300 dark:bg-neutral-600"}`}>
                   <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${showLoginButton ? "left-3.5" : "left-0.5"}`} />
@@ -272,7 +273,7 @@ function SettingsDropdown({
               <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
               <path d="M3 3v5h5" />
             </svg>
-            {recovering ? "恢复中..." : "恢复照片"}
+            {recovering ? t("admin.recovering") : t("admin.recoverPhotos")}
           </button>
 
           {/* Change password */}
@@ -284,7 +285,7 @@ function SettingsDropdown({
               <rect x="3" y="11" width="18" height="11" rx="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
-            修改密码
+            {t("auth.changePassword")}
           </a>
 
           {/* System Status - admin only */}
@@ -301,7 +302,7 @@ function SettingsDropdown({
                 <path d="M8 21h8" />
                 <path d="M12 17v4" />
               </svg>
-              系统状态
+              {t("admin.systemStatus")}
             </button>
           )}
 
@@ -312,14 +313,14 @@ function SettingsDropdown({
               <div className="px-3 py-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-neutral-400 dark:text-neutral-500">
-                    当前版本 v{APP_VERSION}
+                    {t("admin.currentVersion")} v{APP_VERSION}
                   </span>
                   <button
                     onClick={checkForUpdates}
                     disabled={checkingUpdate}
                     className="text-xs text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-50 cursor-pointer"
                   >
-                    {checkingUpdate ? "检查中..." : "检查更新"}
+                    {checkingUpdate ? t("admin.checking") : t("admin.checkUpdate")}
                   </button>
                 </div>
 
@@ -334,7 +335,7 @@ function SettingsDropdown({
                       </svg>
                       <div className="flex-1 min-w-0">
                         <div className="text-xs font-medium text-blue-700 dark:text-blue-300">
-                          新版本可用: v{updateInfo.latestVersion}
+                          {t("admin.newVersionAvailable")}: v{updateInfo.latestVersion}
                         </div>
                         {updateInfo.releaseName && (
                           <div className="text-xs text-blue-600 dark:text-blue-400 truncate">
@@ -348,7 +349,7 @@ function SettingsDropdown({
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 mt-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
                           >
-                            查看更新
+                            {t("admin.viewUpdate")}
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                               <polyline points="15 3 21 3 21 9" />
@@ -367,7 +368,7 @@ function SettingsDropdown({
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
-                    已是最新版本
+                    {t("admin.latestVersion")}
                   </div>
                 )}
               </div>
@@ -380,6 +381,7 @@ function SettingsDropdown({
 }
 
 export function DashboardClient({ currentUser }: DashboardClientProps) {
+  const t = useTranslations();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [users, setUsers] = useState<Array<{
     id: string;
@@ -395,6 +397,7 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
   const [currentSiteName, setCurrentSiteName] = useState(siteConfig.name);
   const [showSystemStatus, setShowSystemStatus] = useState(false);
   const router = useRouter();
+
 
   // Load site name from settings
   useEffect(() => {
@@ -427,7 +430,7 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
 
   // Recover photos from filesystem
   const recoverPhotos = async () => {
-    if (!confirm("尝试从文件系统恢复照片？这将扫描上传目录并重建数据库记录。")) return;
+    if (!confirm(t("admin.recoverConfirm"))) return;
 
     setRecovering(true);
     try {
@@ -435,14 +438,14 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
       const data = await res.json();
 
       if (res.ok) {
-        alert(`恢复完成！\n成功恢复: ${data.recovered} 张照片\n失败: ${data.errors} 个`);
+        alert(t("admin.recoverSuccess", { recovered: data.recovered, errors: data.errors }));
         await fetchPhotos();
       } else {
-        alert(data.error || "恢复失败");
+        alert(data.error || t("admin.recoverFailed"));
       }
     } catch (error) {
       console.error("Recovery failed:", error);
-      alert("恢复失败，请重试");
+      alert(t("admin.recoverFailed"));
     } finally {
       setRecovering(false);
     }
@@ -495,7 +498,7 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
           <div className="flex items-center gap-2">
             <span className="text-xs text-neutral-500 dark:text-neutral-400 mr-2">
               {currentUser.username}
-              {currentUser.role === "admin" && " · 管理员"}
+              {currentUser.role === "admin" && ` · ${t("admin.admin")}`}
             </span>
 
             {/* View site - icon only */}
@@ -503,7 +506,7 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
               href="/"
               target="_blank"
               className="w-8 h-8 rounded-full flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
-              title="查看站点"
+              title={t("admin.viewSite")}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
@@ -531,7 +534,7 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
             <button
               onClick={handleLogout}
               className="w-8 h-8 rounded-full flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:bg-red-100 dark:hover:bg-red-900/30 text-neutral-600 dark:text-neutral-300 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer"
-              title="退出登录"
+              title={t("auth.logout")}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -555,7 +558,7 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
                 : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
                 }`}
             >
-              照片管理 ({photos.length})
+              {t("admin.photos")} ({photos.length})
             </button>
             <button
               onClick={() => handleTabChange("upload")}
@@ -564,7 +567,7 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
                 : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
                 }`}
             >
-              上传照片
+              {t("admin.upload")}
             </button>
             {currentUser.role === "admin" && (
               <button
@@ -574,7 +577,7 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
                   : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
                   }`}
               >
-                用户管理 ({users.length})
+                {t("admin.users")} ({users.length})
               </button>
             )}
           </div>
@@ -597,7 +600,7 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
             onUpdate={fetchUsers}
           />
         ) : loading ? (
-          <div className="text-center text-neutral-500 dark:text-neutral-500 py-20">加载中...</div>
+          <div className="text-center text-neutral-500 dark:text-neutral-500 py-20">{t("common.loading")}</div>
         ) : (
           <PhotoGrid photos={photos} onUpdate={fetchPhotos} />
         )}

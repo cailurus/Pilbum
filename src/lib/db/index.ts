@@ -20,8 +20,6 @@ function createDb(): Database {
     const dir = path.dirname(absolutePath);
     fs.mkdirSync(dir, { recursive: true });
 
-    console.log("Using SQLite database at:", absolutePath);
-
     const sqlite = new Database(absolutePath);
     // Enable WAL mode for better performance
     sqlite.pragma("journal_mode = WAL");

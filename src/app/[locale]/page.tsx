@@ -8,10 +8,31 @@ import { siteConfig } from "@/config/site.config";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import Link from "next/link";
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
+// Helper function to get site name from settings
+async function getSiteName(): Promise<string> {
+  try {
+    const allSettings = await db.select().from(settings);
+    const siteNameSetting = allSettings.find(s => s.key === SETTING_KEYS.SITE_NAME);
+    return siteNameSetting?.value || siteConfig.name;
+  } catch {
+    return siteConfig.name;
+  }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const siteName = await getSiteName();
+  return {
+    title: siteName,
+  };
+}
+
 export default async function HomePage() {
+  const t = await getTranslations();
   let photoList: Photo[] = [];
   let total = 0;
   let showLoginButton = false;
@@ -63,7 +84,7 @@ export default async function HomePage() {
               <Link
                 href="/admin/login"
                 className="w-8 h-8 rounded-full flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
-                title="登录"
+                title={t("auth.login")}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />

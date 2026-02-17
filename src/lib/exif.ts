@@ -1,5 +1,6 @@
 import exifr from "exifr";
 import sharp from "sharp";
+import { isHeicBuffer } from "./heic";
 
 export interface ExifData {
   // Camera info
@@ -123,25 +124,12 @@ function getExposureMode(code: number | undefined): string | undefined {
 }
 
 /**
- * Check if buffer is HEIC/HEIF format by examining magic bytes
- */
-function isHeicBuffer(buffer: Buffer): boolean {
-  if (buffer.length < 12) return false;
-  const ftyp = buffer.toString("ascii", 4, 8);
-  if (ftyp !== "ftyp") return false;
-  const brand = buffer.toString("ascii", 8, 12);
-  const heicBrands = ["heic", "heix", "hevc", "hevx", "mif1", "msf1"];
-  return heicBrands.includes(brand.toLowerCase());
-}
-
-/**
  * Extract EXIF from HEIC files using Sharp (since exifr doesn't support HEIC)
  */
 async function extractExifFromHeic(buffer: Buffer): Promise<Record<string, unknown> | null> {
   try {
     const metadata = await sharp(buffer).metadata();
     if (!metadata.exif) {
-      console.log("HEIC file has no EXIF data in metadata");
       return null;
     }
 
@@ -164,8 +152,7 @@ async function extractExifFromHeic(buffer: Buffer): Promise<Record<string, unkno
     });
 
     return data;
-  } catch (error) {
-    console.error("HEIC EXIF extraction failed:", error);
+  } catch {
     return null;
   }
 }
@@ -176,7 +163,6 @@ export async function extractExif(buffer: Buffer): Promise<ExifData> {
 
     // Check if this is a HEIC file - use Sharp for HEIC since exifr doesn't support it
     if (isHeicBuffer(buffer)) {
-      console.log("Detected HEIC format, using Sharp for EXIF extraction");
       data = await extractExifFromHeic(buffer);
     } else {
       // For JPEG and other formats, use exifr directly
@@ -194,12 +180,8 @@ export async function extractExif(buffer: Buffer): Promise<ExifData> {
     }
 
     if (!data) {
-      console.log("EXIF extraction returned no data");
       return {};
     }
-
-    // Debug: log available keys for troubleshooting
-    console.log("EXIF keys found:", Object.keys(data).join(", "));
 
     return {
       // Camera info - try multiple possible field names
@@ -241,8 +223,7 @@ export async function extractExif(buffer: Buffer): Promise<ExifData> {
       width: Number(data.ExifImageWidth || data.ImageWidth || data.PixelXDimension) || undefined,
       height: Number(data.ExifImageHeight || data.ImageHeight || data.PixelYDimension) || undefined,
     };
-  } catch (error) {
-    console.error("EXIF extraction failed:", error);
+  } catch {
     return {};
   }
 }

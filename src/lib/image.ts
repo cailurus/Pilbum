@@ -1,5 +1,6 @@
 import sharp from "sharp";
 import convert from "heic-convert";
+import { isHeicBuffer } from "./heic";
 
 interface ProcessedImage {
   fullBuffer: Buffer;
@@ -15,25 +16,11 @@ const THUMBNAIL_MAX_WIDTH = 800;
 const BLUR_WIDTH = 32;
 
 /**
- * Detect if a buffer is HEIC/HEIF format by checking magic bytes.
- * HEIC files have 'ftyp' at offset 4 and a HEIC brand after that.
- */
-function isHeicBuffer(buffer: Buffer): boolean {
-  if (buffer.length < 12) return false;
-  const ftyp = buffer.toString("ascii", 4, 8);
-  if (ftyp !== "ftyp") return false;
-  const brand = buffer.toString("ascii", 8, 12);
-  const heicBrands = ["heic", "heix", "hevc", "hevx", "mif1", "msf1"];
-  return heicBrands.includes(brand.toLowerCase());
-}
-
-/**
  * Convert HEIC/HEIF buffer to JPEG. Returns the original buffer if not HEIC.
  */
 async function ensureJpegBuffer(inputBuffer: Buffer): Promise<Buffer> {
   if (!isHeicBuffer(inputBuffer)) return inputBuffer;
 
-  console.log("Detected HEIC format, converting to JPEG...");
   const result = await convert({
     buffer: inputBuffer,
     format: "JPEG",
