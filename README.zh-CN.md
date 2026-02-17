@@ -4,6 +4,8 @@
 
 [English](./README.md)
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcailurus%2FPilbum&env=DATABASE_URL,ADMIN_DEFAULT_PASSWORD&envDescription=%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E5%92%8C%E7%AE%A1%E7%90%86%E5%91%98%E5%AF%86%E7%A0%81&envLink=https%3A%2F%2Fgithub.com%2Fcailurus%2FPilbum%2Fblob%2Fmain%2FREADME.zh-CN.md%23%E6%95%B0%E6%8D%AE%E5%BA%93%E9%85%8D%E7%BD%AE&project-name=pilbum&repository-name=pilbum)
+
 ## 项目介绍
 
 Pilbum 是一个轻量级、可自托管的照片管理平台。完全掌控你的照片数据，保留原始画质、完整 EXIF 信息和 Live Photo 支持 — 无压缩、无广告、无第三方依赖。
@@ -303,10 +305,25 @@ NEXT_PUBLIC_DEFAULT_LOCALE=zh
 
 ### Vercel（推荐）
 
-1. 将代码推送到 GitHub
-2. 在 [Vercel](https://vercel.com) 导入项目
-3. 在项目设置中添加环境变量
-4. 部署
+**一键部署：**
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcailurus%2FPilbum&env=DATABASE_URL,ADMIN_DEFAULT_PASSWORD&envDescription=%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E5%92%8C%E7%AE%A1%E7%90%86%E5%91%98%E5%AF%86%E7%A0%81&envLink=https%3A%2F%2Fgithub.com%2Fcailurus%2FPilbum%2Fblob%2Fmain%2FREADME.zh-CN.md%23%E6%95%B0%E6%8D%AE%E5%BA%93%E9%85%8D%E7%BD%AE&project-name=pilbum&repository-name=pilbum)
+
+**部署步骤：**
+
+1. 点击上方「Deploy with Vercel」按钮
+2. 连接 GitHub 账号并创建仓库
+3. 配置必需的环境变量：
+   - `DATABASE_URL` - PostgreSQL 连接字符串（从 [Supabase](https://supabase.com)、[Neon](https://neon.tech) 等获取）
+   - `ADMIN_DEFAULT_PASSWORD` - 初始管理员密码
+4. 点击「Deploy」等待构建完成
+5. 在 Vercel 项目设置中配置对象存储（可选，默认使用 Vercel Blob）
+
+**部署后操作：**
+
+1. 访问 `https://你的项目.vercel.app/admin` 进入管理后台
+2. 使用用户名 `admin` 和你配置的密码登录
+3. 立即在设置中修改密码
 
 ### Docker
 

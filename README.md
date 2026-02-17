@@ -4,6 +4,8 @@ A modern, self-hosted photo album system built for photography enthusiasts.
 
 [中文文档](./README.zh-CN.md)
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcailurus%2FPilbum&env=DATABASE_URL,ADMIN_DEFAULT_PASSWORD&envDescription=Database%20connection%20and%20admin%20password&envLink=https%3A%2F%2Fgithub.com%2Fcailurus%2FPilbum%23database-configuration&project-name=pilbum&repository-name=pilbum)
+
 ## Introduction
 
 Pilbum is a lightweight, self-hosted photo management platform. Keep full control of your photos with original quality, complete EXIF data, and Live Photo support — no compression, no ads, no third-party dependencies.
@@ -303,10 +305,25 @@ NEXT_PUBLIC_DEFAULT_LOCALE=en
 
 ### Vercel (Recommended)
 
-1. Push your code to GitHub
-2. Import project in [Vercel](https://vercel.com)
-3. Add environment variables in project settings
-4. Deploy
+**One-Click Deploy:**
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcailurus%2FPilbum&env=DATABASE_URL,ADMIN_DEFAULT_PASSWORD&envDescription=Database%20connection%20and%20admin%20password&envLink=https%3A%2F%2Fgithub.com%2Fcailurus%2FPilbum%23database-configuration&project-name=pilbum&repository-name=pilbum)
+
+**Manual Steps:**
+
+1. Click the "Deploy with Vercel" button above
+2. Connect your GitHub account and create the repository
+3. Configure required environment variables:
+   - `DATABASE_URL` - PostgreSQL connection string (get from [Supabase](https://supabase.com), [Neon](https://neon.tech), etc.)
+   - `ADMIN_DEFAULT_PASSWORD` - Initial admin password
+4. Click "Deploy" and wait for the build to complete
+5. Configure object storage in Vercel project settings (optional, uses Vercel Blob by default)
+
+**Post-Deployment:**
+
+1. Visit `https://your-project.vercel.app/admin` to access the admin panel
+2. Login with username `admin` and your configured password
+3. Change your password immediately in Settings
 
 ### Docker
 
