@@ -4,7 +4,7 @@
 
 [English](./README.md)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcailurus%2FPilbum&env=DATABASE_URL,ADMIN_DEFAULT_PASSWORD&envDescription=%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E5%92%8C%E7%AE%A1%E7%90%86%E5%91%98%E5%AF%86%E7%A0%81&envLink=https%3A%2F%2Fgithub.com%2Fcailurus%2FPilbum%2Fblob%2Fmain%2FREADME.zh-CN.md%23%E6%95%B0%E6%8D%AE%E5%BA%93%E9%85%8D%E7%BD%AE&project-name=pilbum&repository-name=pilbum)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcailurus%2FPilbum&project-name=pilbum&repository-name=pilbum)
 
 ## 项目介绍
 
@@ -18,7 +18,7 @@ Pilbum 是一个轻量级、可自托管的照片管理平台。完全掌控你�
 - **EXIF 信息展示** - 相机型号、镜头、光圈、快门、ISO、GPS 位置
 - **瀑布流画廊** - 响应式布局，无限滚动加载
 - **深色模式** - 跟随系统自动切换主题
-- **多语言支持** - 基于 next-intl 的国际化
+- **多语言支持** - 中英双语
 - **管理后台** - 照片上传、批量管理、用户权限控制
 - **自动更新检测** - 从 GitHub Releases 检查新版本
 
@@ -34,296 +34,142 @@ Pilbum 是一个轻量级、可自托管的照片管理平台。完全掌控你�
 | 图片处理 | Sharp |
 | 地图 | Leaflet + OpenStreetMap |
 
+---
+
 ## 快速开始
 
-1. 克隆仓库
-2. 复制 `.env.example` 为 `.env` 并配置
-3. 安装依赖：`npm install`
-4. 初始化数据库：`npm run db:migrate`
-5. 启动开发服务器：`npm run dev`
-6. 访问 `http://localhost:3000/admin` 进行管理
+### 方式一：Vercel 部署（推荐）
 
----
+1. 点击上方 **Deploy with Vercel** 按钮
+2. 按照配置向导设置数据库和存储
+3. 访问 `/admin` 管理照片
 
-## 存储配置
-
-Pilbum 需要两种类型的存储：
-
-| 类型 | 用途 | 默认选项 | 云端选项 |
-|------|------|----------|----------|
-| **数据库** | 照片元数据、用户、设置 | SQLite (本地) | PostgreSQL |
-| **对象存储** | 图片文件、缩略图、视频 | 本地文件系统 | S3 兼容存储、Azure Blob |
-
----
-
-## 数据库配置
-
-### 方案一：本地 SQLite（默认）
-
-无需额外配置，数据存储在 `./data/sqlite.db`。
+### 方式二：本地开发
 
 ```bash
-# .env
+git clone https://github.com/cailurus/Pilbum.git
+cd Pilbum
+cp .env.example .env
+npm install
+npm run dev
+```
+
+访问 `http://localhost:3000/admin`（默认密码：`admin`）
+
+---
+
+## 配置说明
+
+Pilbum 需要两个服务：**数据库** 和 **对象存储**。
+
+| 服务 | 本地（默认） | 云端（推荐） |
+|------|-------------|-------------|
+| 数据库 | SQLite | [Supabase](https://supabase.com)（免费 500MB） |
+| 存储 | 本地文件系统 | [Cloudflare R2](https://www.cloudflare.com/zh-cn/products/r2/)（免费 10GB） |
+
+### 数据库
+
+**本地 SQLite**（无需配置）：
+```bash
 DATABASE_PROVIDER=local
 ```
 
-### 方案二：Supabase（推荐云端方案）
-
-[Supabase](https://supabase.com) 提供慷慨的免费额度，包含 500MB 数据库存储。
-
-**配置步骤：**
-
-1. 访问 [supabase.com](https://supabase.com) 并注册账号
-2. 点击 "New Project" 创建新项目
-3. 等待项目初始化（约 2 分钟）
-4. 进入 **Settings** → **Database**
-5. 找到 "Connection string" 部分，选择 "URI"
-6. 复制连接字符串（以 `postgresql://` 开头）
-
-**环境变量配置：**
-
+**Supabase PostgreSQL**：
 ```bash
-# .env
 DATABASE_PROVIDER=postgres
-DATABASE_URL=postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
+DATABASE_URL=postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
 ```
 
-> **注意**：将 `[password]` 替换为创建项目时设置的数据库密码。
+> 获取连接字符串：Supabase 控制台 → Settings → Database → Connection string (URI)
 
-### 方案三：Neon
+<details>
+<summary>其他数据库选项</summary>
 
-[Neon](https://neon.tech) 提供 Serverless PostgreSQL，有免费额度。
+- **[Neon](https://neon.tech)** - Serverless PostgreSQL
+- **[Railway](https://railway.app)** - 简单易用的 PostgreSQL
+- **[Vercel Postgres](https://vercel.com/storage/postgres)** - Vercel 集成
 
-**配置步骤：**
+</details>
 
-1. 访问 [neon.tech](https://neon.tech) 并注册
-2. 点击 "Create Project" 创建项目
-3. 从控制台复制连接字符串
+### 对象存储
 
-**环境变量配置：**
-
+**本地文件系统**（无需配置）：
 ```bash
-# .env
-DATABASE_PROVIDER=postgres
-DATABASE_URL=postgresql://[user]:[password]@[endpoint].neon.tech/[database]?sslmode=require
-```
-
-### 方案四：Railway
-
-[Railway](https://railway.app) 提供简单易用的 PostgreSQL 托管服务。
-
-**配置步骤：**
-
-1. 访问 [railway.app](https://railway.app) 并注册
-2. 点击 "New Project" → "Provision PostgreSQL"
-3. 点击数据库 → "Connect" 标签页
-4. 复制 "Postgres Connection URL"
-
-**环境变量配置：**
-
-```bash
-# .env
-DATABASE_PROVIDER=postgres
-DATABASE_URL=postgresql://postgres:[password]@[host].railway.app:5432/railway
-```
-
-### 方案五：Vercel Postgres
-
-如果部署在 Vercel，可以使用其集成的 Postgres 服务。
-
-**配置步骤：**
-
-1. 在 Vercel 项目中，进入 "Storage" 标签页
-2. 点击 "Create Database" → "Postgres"
-3. 按向导完成设置
-4. 环境变量会自动配置
-
----
-
-## 对象存储配置
-
-### 方案一：本地存储（默认）
-
-文件存储在 `./public/uploads/`，适合开发环境和小型部署。
-
-```bash
-# .env
 STORAGE_PROVIDER=local
-LOCAL_STORAGE_PATH=public/uploads
 ```
 
-### 方案二：Cloudflare R2（推荐）
-
-[Cloudflare R2](https://www.cloudflare.com/zh-cn/products/r2/) 提供 S3 兼容的对象存储，**无出口流量费用**。
-
-**免费额度**：10GB 存储、每月 1000 万次读取、100 万次写入
-
-**配置步骤：**
-
-1. 访问 [Cloudflare 控制台](https://dash.cloudflare.com) 并注册
-2. 导航到 **R2 对象存储**
-3. 点击 "创建存储桶"，命名（如 `pilbum-photos`）
-4. 进入 **R2** → **概述** → **管理 R2 API 令牌**
-5. 点击 "创建 API 令牌"
-   - 权限：**对象读写**
-   - 指定存储桶：选择你的存储桶
-6. 复制 **访问密钥 ID** 和 **机密访问密钥**
-7. 从 R2 概述页面记下你的 **账户 ID**
-
-**环境变量配置：**
-
+**Cloudflare R2**：
 ```bash
-# .env
-STORAGE_PROVIDER=s3
-S3_ENDPOINT=https://[account-id].r2.cloudflarestorage.com
-S3_BUCKET=pilbum-photos
-S3_ACCESS_KEY_ID=你的访问密钥ID
-S3_SECRET_ACCESS_KEY=你的机密访问密钥
-S3_REGION=auto
-
-# 公开访问 URL（配置自定义域名或使用 R2.dev 子域名）
-NEXT_PUBLIC_STORAGE_BASE_URL=https://pub-[hash].r2.dev
-```
-
-**启用公开访问：**
-
-1. 在存储桶设置中，进入 "设置"
-2. 启用 "R2.dev 子域名" 以获得公开访问
-3. 或者配置自定义域名以获得更好的 URL
-
-### 方案三：AWS S3
-
-[Amazon S3](https://aws.amazon.com/cn/s3/) 是行业标准的对象存储服务。
-
-**配置步骤：**
-
-1. 访问 [AWS 控制台](https://console.aws.amazon.com) 并注册
-2. 导航到 **S3** → "创建存储桶"
-3. 命名存储桶（如 `pilbum-photos`）
-4. 区域：选择离用户较近的区域
-5. 取消勾选 "阻止所有公开访问"（用于公开照片 URL）
-6. 创建存储桶
-
-**创建 IAM 凭证：**
-
-1. 进入 **IAM** → **用户** → "创建用户"
-2. 附加策略：`AmazonS3FullAccess`（或创建自定义策略）
-3. 进入 "安全凭证" → "创建访问密钥"
-4. 复制 **访问密钥 ID** 和 **私有访问密钥**
-
-**环境变量配置：**
-
-```bash
-# .env
-STORAGE_PROVIDER=s3
-S3_ENDPOINT=https://s3.[region].amazonaws.com
-S3_BUCKET=pilbum-photos
-S3_ACCESS_KEY_ID=AKIA...
-S3_SECRET_ACCESS_KEY=你的私有密钥
-S3_REGION=us-east-1
-
-NEXT_PUBLIC_STORAGE_BASE_URL=https://pilbum-photos.s3.us-east-1.amazonaws.com
-```
-
-### 方案四：Supabase Storage
-
-与 Supabase 数据库配合使用，提供一体化解决方案。
-
-**配置步骤：**
-
-1. 在 Supabase 项目中，进入 **Storage**
-2. 点击 "New bucket"，命名为 `photos`
-3. 设置存储桶为 **Public**（用于公开照片 URL）
-4. 进入 **Settings** → **API**
-5. 复制 **Project URL** 和 **anon public key**
-
-**环境变量配置：**
-
-```bash
-# .env
-STORAGE_PROVIDER=supabase
-SUPABASE_URL=https://[project-ref].supabase.co
-SUPABASE_ANON_KEY=eyJ...
-SUPABASE_BUCKET=photos
-
-NEXT_PUBLIC_STORAGE_BASE_URL=https://[project-ref].supabase.co/storage/v1/object/public/photos
-```
-
-### 方案五：Azure Blob Storage
-
-[Azure Blob Storage](https://azure.microsoft.com/zh-cn/products/storage/blobs) 是微软的对象存储解决方案。
-
-**配置步骤：**
-
-1. 访问 [Azure 门户](https://portal.azure.com) 并注册
-2. 创建 **存储帐户**
-3. 进入存储帐户 → **容器**
-4. 创建名为 `photos` 的容器，访问级别设为 "Blob"
-5. 进入 **访问密钥**，复制 **连接字符串**
-
-**环境变量配置：**
-
-```bash
-# .env
-STORAGE_PROVIDER=azure
-AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=...
-AZURE_STORAGE_CONTAINER_NAME=photos
-
-NEXT_PUBLIC_STORAGE_BASE_URL=https://[account-name].blob.core.windows.net/photos
-```
-
----
-
-## 完整配置示例
-
-以下是使用 Supabase（数据库）+ Cloudflare R2（存储）的完整 `.env` 示例：
-
-```bash
-# 数据库 - Supabase
-DATABASE_PROVIDER=postgres
-DATABASE_URL=postgresql://postgres.[ref]:[password]@aws-0-us-east-1.pooler.supabase.com:6543/postgres
-
-# 存储 - Cloudflare R2
 STORAGE_PROVIDER=s3
 S3_ENDPOINT=https://[account-id].r2.cloudflarestorage.com
 S3_BUCKET=pilbum-photos
 S3_ACCESS_KEY_ID=你的访问密钥
 S3_SECRET_ACCESS_KEY=你的机密密钥
 S3_REGION=auto
-NEXT_PUBLIC_STORAGE_BASE_URL=https://your-custom-domain.com
+NEXT_PUBLIC_STORAGE_BASE_URL=https://pub-[hash].r2.dev
+```
+
+> 配置步骤：R2 控制台 → 创建存储桶 → 管理 API 令牌 → 创建对象读写权限的令牌
+
+<details>
+<summary>其他存储选项</summary>
+
+- **[AWS S3](https://aws.amazon.com/cn/s3/)** - 行业标准
+- **[Supabase Storage](https://supabase.com/storage)** - 与 Supabase 数据库统一
+- **[Azure Blob](https://azure.microsoft.com/zh-cn/products/storage/blobs)** - 微软云存储
+
+</details>
+
+### 完整配置示例
+
+```bash
+# 数据库
+DATABASE_PROVIDER=postgres
+DATABASE_URL=postgresql://postgres.[ref]:[password]@aws-0-us-east-1.pooler.supabase.com:6543/postgres
+
+# 存储
+STORAGE_PROVIDER=s3
+S3_ENDPOINT=https://[account-id].r2.cloudflarestorage.com
+S3_BUCKET=pilbum-photos
+S3_ACCESS_KEY_ID=你的密钥
+S3_SECRET_ACCESS_KEY=你的机密
+S3_REGION=auto
+NEXT_PUBLIC_STORAGE_BASE_URL=https://your-domain.com
 
 # 认证
 ADMIN_DEFAULT_PASSWORD=修改为你的密码
+```
 
-# 应用
-NEXT_PUBLIC_DEFAULT_LOCALE=zh
+> 详细配置指南请参考 [docs/storage-configuration.md](./docs/storage-configuration.md)
+
+---
+
+## 更新指南
+
+通过 Vercel 部署时，会在你的 GitHub 账户下创建一个 fork 仓库。获取更新的方法：
+
+### GitHub 网页端（最简单）
+
+1. 访问你 fork 的仓库页面
+2. 会看到提示 "This branch is X commits behind cailurus/Pilbum:main"
+3. 点击 **Sync fork** → **Update branch**
+4. Vercel 会自动重新部署
+
+### 命令行方式
+
+```bash
+# 添加上游仓库（仅需一次）
+git remote add upstream https://github.com/cailurus/Pilbum.git
+
+# 同步更新
+git fetch upstream
+git merge upstream/main
+git push origin main
 ```
 
 ---
 
-## 部署
-
-### Vercel（推荐）
-
-**一键部署：**
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcailurus%2FPilbum&env=DATABASE_URL,ADMIN_DEFAULT_PASSWORD&envDescription=%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E5%92%8C%E7%AE%A1%E7%90%86%E5%91%98%E5%AF%86%E7%A0%81&envLink=https%3A%2F%2Fgithub.com%2Fcailurus%2FPilbum%2Fblob%2Fmain%2FREADME.zh-CN.md%23%E6%95%B0%E6%8D%AE%E5%BA%93%E9%85%8D%E7%BD%AE&project-name=pilbum&repository-name=pilbum)
-
-**部署步骤：**
-
-1. 点击上方「Deploy with Vercel」按钮
-2. 连接 GitHub 账号并创建仓库
-3. 配置必需的环境变量：
-   - `DATABASE_URL` - PostgreSQL 连接字符串（从 [Supabase](https://supabase.com)、[Neon](https://neon.tech) 等获取）
-   - `ADMIN_DEFAULT_PASSWORD` - 初始管理员密码
-4. 点击「Deploy」等待构建完成
-5. 在 Vercel 项目设置中配置对象存储（可选，默认使用 Vercel Blob）
-
-**部署后操作：**
-
-1. 访问 `https://你的项目.vercel.app/admin` 进入管理后台
-2. 使用用户名 `admin` 和你配置的密码登录
-3. 立即在设置中修改密码
+## 其他部署方式
 
 ### Docker
 
