@@ -7,6 +7,7 @@ import { UploadForm } from "@/components/admin/upload-form";
 import { PhotoGrid } from "@/components/admin/photo-grid";
 import { UserList } from "@/components/admin/user-list";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SystemStatusModal } from "@/components/admin/system-status-modal";
 import { siteConfig } from "@/config/site.config";
 import { APP_VERSION } from "@/config/version";
 
@@ -36,11 +37,13 @@ function SettingsDropdown({
   onRecover,
   isAdmin,
   onSiteNameChange,
+  onOpenSystemStatus,
 }: {
   recovering: boolean;
   onRecover: () => void;
   isAdmin: boolean;
   onSiteNameChange?: (name: string) => void;
+  onOpenSystemStatus: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [showLoginButton, setShowLoginButton] = useState(false);
@@ -289,6 +292,24 @@ function SettingsDropdown({
             修改密码
           </a>
 
+          {/* System Status - admin only */}
+          {isAdmin && (
+            <button
+              onClick={() => {
+                onOpenSystemStatus();
+                setOpen(false);
+              }}
+              className="w-full px-3 py-2 text-left text-sm text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer flex items-center gap-2"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <path d="M8 21h8" />
+                <path d="M12 17v4" />
+              </svg>
+              系统状态
+            </button>
+          )}
+
           {/* Version & Update section - admin only */}
           {isAdmin && (
             <>
@@ -377,6 +398,7 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
   const [recovering, setRecovering] = useState(false);
   const [activeTab, setActiveTab] = useState<"photos" | "upload" | "users">("photos");
   const [currentSiteName, setCurrentSiteName] = useState(siteConfig.name);
+  const [showSystemStatus, setShowSystemStatus] = useState(false);
   const router = useRouter();
 
   // Load site name from settings
@@ -501,6 +523,7 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
               onRecover={recoverPhotos}
               isAdmin={currentUser.role === "admin"}
               onSiteNameChange={setCurrentSiteName}
+              onOpenSystemStatus={() => setShowSystemStatus(true)}
             />
 
             {/* Logout */}
@@ -578,6 +601,12 @@ export function DashboardClient({ currentUser }: DashboardClientProps) {
           <PhotoGrid photos={photos} onUpdate={fetchPhotos} />
         )}
       </main>
+
+      {/* System Status Modal */}
+      <SystemStatusModal
+        isOpen={showSystemStatus}
+        onClose={() => setShowSystemStatus(false)}
+      />
     </div>
   );
 }

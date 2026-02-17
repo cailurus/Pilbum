@@ -6,28 +6,9 @@ A modern, self-hosted photo album system built for photography enthusiasts.
 
 ## Introduction
 
-Pilbum is a lightweight, self-hosted photo management and showcase platform. It gives you full control over your photo data without relying on third-party cloud services, while providing a professional-grade photo viewing experience.
+Pilbum is a lightweight, self-hosted photo management platform. Keep full control of your photos with original quality, complete EXIF data, and Live Photo support — no compression, no ads, no third-party dependencies.
 
-### Problems It Solves
-
-- **Data Privacy**: Photos are stored on your own server - no worries about privacy leaks or service shutdowns
-- **Professional Display**: Unlike social platforms that compress and crop, preserves original quality and complete EXIF data
-- **Live Photo Support**: Full support for iOS Live Photo upload and playback - a feature most album services lack
-- **Clean Experience**: Focus on the photos themselves, no ads, social features, or cluttered interfaces
-
-### Use Cases
-
-- Personal photography portfolio
-- Private family photo storage
-- Photographers delivering work to clients
-- Travel and life photo archiving
-
-### Target Users
-
-- Privacy-conscious users who want control over their data
-- Photography enthusiasts who need to showcase their portfolio
-- Technical users with basic server management skills
-- Families wanting to build a private cloud album
+**Perfect for**: Photography portfolios, family albums, client deliveries, and anyone who values data privacy.
 
 ## Features
 
