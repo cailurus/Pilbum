@@ -8,6 +8,17 @@ import { PhotoGrid } from "@/components/admin/photo-grid";
 import { UserList } from "@/components/admin/user-list";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { siteConfig } from "@/config/site.config";
+import { APP_VERSION } from "@/config/version";
+
+interface UpdateInfo {
+  currentVersion: string;
+  latestVersion: string | null;
+  hasUpdate: boolean;
+  releaseUrl: string | null;
+  releaseName: string | null;
+  publishedAt: string | null;
+  releaseNotes: string | null;
+}
 
 interface CurrentUser {
   userId: string;
@@ -37,8 +48,31 @@ function SettingsDropdown({
   const [editingSiteName, setEditingSiteName] = useState(false);
   const [siteNameInput, setSiteNameInput] = useState("");
   const [loadingSettings, setLoadingSettings] = useState(true);
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const siteNameInputRef = useRef<HTMLInputElement>(null);
+
+  // Check for updates
+  const checkForUpdates = useCallback(async () => {
+    setCheckingUpdate(true);
+    try {
+      const res = await fetch("/api/version");
+      const data = await res.json();
+      setUpdateInfo(data);
+    } catch (error) {
+      console.error("Failed to check for updates:", error);
+    } finally {
+      setCheckingUpdate(false);
+    }
+  }, []);
+
+  // Check for updates on mount (admin only)
+  useEffect(() => {
+    if (isAdmin) {
+      checkForUpdates();
+    }
+  }, [isAdmin, checkForUpdates]);
 
   // Load settings
   useEffect(() => {
@@ -127,13 +161,17 @@ function SettingsDropdown({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setOpen(!open)}
-        className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
+        className="relative p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
         title="设置"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
           <circle cx="12" cy="12" r="3" />
         </svg>
+        {/* Update available badge */}
+        {updateInfo?.hasUpdate && (
+          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white dark:border-neutral-900" />
+        )}
       </button>
 
       {open && (
@@ -250,6 +288,75 @@ function SettingsDropdown({
             </svg>
             修改密码
           </a>
+
+          {/* Version & Update section - admin only */}
+          {isAdmin && (
+            <>
+              <div className="border-t border-neutral-200 dark:border-neutral-800 my-1" />
+              <div className="px-3 py-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-neutral-400 dark:text-neutral-500">
+                    当前版本 v{APP_VERSION}
+                  </span>
+                  <button
+                    onClick={checkForUpdates}
+                    disabled={checkingUpdate}
+                    className="text-xs text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-50 cursor-pointer"
+                  >
+                    {checkingUpdate ? "检查中..." : "检查更新"}
+                  </button>
+                </div>
+
+                {/* Update available notification */}
+                {updateInfo?.hasUpdate && (
+                  <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-500 flex-shrink-0 mt-0.5">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="16" x2="12" y2="12" />
+                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                      </svg>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                          新版本可用: v{updateInfo.latestVersion}
+                        </div>
+                        {updateInfo.releaseName && (
+                          <div className="text-xs text-blue-600 dark:text-blue-400 truncate">
+                            {updateInfo.releaseName}
+                          </div>
+                        )}
+                        {updateInfo.releaseUrl && (
+                          <a
+                            href={updateInfo.releaseUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 mt-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            查看更新
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                              <polyline points="15 3 21 3 21 9" />
+                              <line x1="10" y1="14" x2="21" y2="3" />
+                            </svg>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* No update available */}
+                {updateInfo && !updateInfo.hasUpdate && updateInfo.latestVersion && (
+                  <div className="mt-1 text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    已是最新版本
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
